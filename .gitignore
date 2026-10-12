@@ -1,0 +1,29 @@
+# IDE
+.idea/
+.vscode/
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+*.egg-info/
+.pytest_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+
+# Build
+build/
+dist/
+*.spec
+*.build/
+*.dist/
+*.onefile-build/
+
+# OS
+Thumbs.db
+desktop.ini
+
+# Logs
+*.log

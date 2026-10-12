@@ -1,0 +1,57 @@
+[build-system]
+requires = ["hatchling>=1.25"]
+build-backend = "hatchling.build"
+
+[project]
+name = "morphto"
+version = "0.1.0"
+description = "Fast, offline file converter for Windows: press a hotkey, paste, pick a format, done."
+readme = "README.md"
+license = "GPL-3.0-or-later"
+license-files = ["LICENSE"]
+authors = [{ name = "rearzty" }]
+requires-python = ">=3.12"
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Environment :: Win32 (MS Windows)",
+    "Intended Audience :: End Users/Desktop",
+    "Operating System :: Microsoft :: Windows :: Windows 10",
+    "Operating System :: Microsoft :: Windows :: Windows 11",
+    "Programming Language :: Python :: 3",
+    "Topic :: Multimedia :: Graphics :: Graphics Conversion",
+    "Topic :: Multimedia :: Sound/Audio :: Conversion",
+    "Topic :: Multimedia :: Video :: Conversion",
+]
+dependencies = [
+    "pillow>=11.3",
+    "pi-heif>=1.0",
+    "PySide6-Essentials>=6.8",
+]
+
+[project.optional-dependencies]
+dev = ["pytest>=8", "ruff>=0.8"]
+
+[project.urls]
+Repository = "https://github.com/rearzty/MorphTo"
+
+[project.scripts]
+morphto = "morphto.cli:main"
+
+[project.gui-scripts]
+morphtow = "morphto.gui:main"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/morphto"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+markers = ["ffmpeg: needs an FFmpeg binary (skipped when it is not available)"]
+
+[tool.ruff]
+line-length = 110
+target-version = "py312"
+src = ["src", "tests"]
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "B", "UP", "SIM", "RUF"]
+ignore = ["E501", "RUF001", "RUF002", "RUF003"]

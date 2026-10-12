@@ -1,0 +1,82 @@
+name: Release
+
+on:
+  push:
+    tags: ["v*"]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.14"
+          cache: pip
+      - name: Install
+        run: python -m pip install -e . pyinstaller ziglang
+      - name: Read version
+        id: version
+        shell: pwsh
+        run: |
+          $v = python -c "import morphto; print(morphto.__version__)"
+          if ($env:GITHUB_REF_TYPE -eq "tag" -and $env:GITHUB_REF_NAME -ne "v$v") {
+            Write-Error "Tag $env:GITHUB_REF_NAME does not match version $v in src/morphto/__init__.py"; exit 1
+          }
+          "version=$v" >> $env:GITHUB_OUTPUT
+      - name: Build the app
+        run: python packaging/build.py
+      - name: Self-test the packaged app
+        shell: pwsh
+        run: |
+          python -c "from PIL import Image; Image.new('RGB', (64, 48), 'teal').save('sample.png')"
+          dist\MorphTo\MorphTo.exe --self-test sample.png jpg | Out-Host
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+      - name: Build the installer
+        shell: pwsh
+        run: |
+          $iscc = "${env:ProgramFiles(x86)}\Inno Setup 6\ISCC.exe"
+          if (-not (Test-Path $iscc)) { choco install innosetup -y --no-progress | Out-Host }
+          & $iscc "/DAppVersion=${{ steps.version.outputs.version }}" packaging\installer.iss
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+      - name: Portable zip and checksums
+        shell: pwsh
+        run: |
+          $v = "${{ steps.version.outputs.version }}"
+          Compress-Archive -Path dist\MorphTo -DestinationPath "dist\MorphTo-$v-portable.zip"
+          # stable name, so "releases/latest/download/MorphTo-setup.exe" in the README always works
+          Copy-Item "dist\MorphTo-$v-setup.exe" dist\MorphTo-setup.exe
+          Get-FileHash "dist\MorphTo-$v-setup.exe", "dist\MorphTo-$v-portable.zip" -Algorithm SHA256 |
+            ForEach-Object { "$($_.Hash.ToLower())  $(Split-Path $_.Path -Leaf)" } |
+            Set-Content dist\SHA256SUMS.txt -Encoding ascii
+      - name: Release notes from CHANGELOG
+        shell: pwsh
+        run: |
+          $v = "${{ steps.version.outputs.version }}"
+          $text = Get-Content CHANGELOG.md -Raw -Encoding utf8
+          $m = [regex]::Match($text, "(?ms)^## \[?$([regex]::Escape($v))\]?.*?$\r?\n(.*?)(?=^## |\z)")
+          $notes = if ($m.Success) { $m.Groups[1].Value.Trim() } else { "MorphTo $v" }
+          Set-Content release-notes.md $notes -Encoding utf8
+      - uses: actions/upload-artifact@v4
+        with:
+          name: MorphTo-${{ steps.version.outputs.version }}
+          path: |
+            dist/MorphTo-*-setup.exe
+            dist/MorphTo-*-portable.zip
+            dist/SHA256SUMS.txt
+      - name: Publish GitHub release
+        if: github.ref_type == 'tag'
+        uses: softprops/action-gh-release@v2
+        with:
+          name: MorphTo ${{ steps.version.outputs.version }}${{ startsWith(steps.version.outputs.version, '0.') && ' (beta)' || '' }}
+          body_path: release-notes.md
+          make_latest: true
+          files: |
+            dist/MorphTo-setup.exe
+            dist/MorphTo-${{ steps.version.outputs.version }}-setup.exe
+            dist/MorphTo-${{ steps.version.outputs.version }}-portable.zip
+            dist/SHA256SUMS.txt

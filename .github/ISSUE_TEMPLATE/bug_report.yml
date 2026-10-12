@@ -1,0 +1,36 @@
+name: Bug report
+description: Something doesn't work or MorphTo crashed
+labels: [bug]
+body:
+  - type: textarea
+    id: what
+    attributes:
+      label: What happened?
+      description: What did you do, what did you expect, what happened instead?
+    validations:
+      required: true
+  - type: input
+    id: version
+    attributes:
+      label: MorphTo version
+      description: Tray icon → ⚙ Settings, bottom line (or `morphto --version`)
+      placeholder: "0.1.0"
+    validations:
+      required: true
+  - type: input
+    id: windows
+    attributes:
+      label: Windows version
+      placeholder: Windows 11 24H2
+  - type: input
+    id: file
+    attributes:
+      label: File type
+      description: Which format did you convert from and to?
+      placeholder: HEIC → JPG
+  - type: textarea
+    id: log
+    attributes:
+      label: Crash log
+      description: If MorphTo crashed, paste the end of %LOCALAPPDATA%\MorphTo\crash.log
+      render: text

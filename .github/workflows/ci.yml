@@ -1,0 +1,58 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  test:
+    runs-on: windows-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python: ["3.12", "3.14"]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python }}
+          cache: pip
+      - name: Install
+        run: python -m pip install -e ".[dev]"
+      - name: Lint
+        run: |
+          ruff check .
+          ruff format --check .
+      - name: Cache FFmpeg
+        uses: actions/cache@v4
+        with:
+          path: ~\AppData\Local\MorphTo\engines
+          key: ffmpeg-${{ runner.os }}-v1
+      - name: Install FFmpeg (for audio/video tests)
+        run: morphto engines install ffmpeg
+      - name: Test
+        run: pytest -q
+
+  build:
+    needs: test
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.14"
+          cache: pip
+      - name: Install
+        run: python -m pip install -e . pyinstaller ziglang
+      - name: Build
+        run: python packaging/build.py
+      - name: Self-test the packaged app
+        run: |
+          python -c "from PIL import Image; Image.new('RGB', (64, 48), 'teal').save('sample.png')"
+          dist\MorphTo\MorphTo.exe --self-test sample.png jpg | Out-Host
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+      - uses: actions/upload-artifact@v4
+        with:
+          name: MorphTo-windows
+          path: dist/MorphTo
