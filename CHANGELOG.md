@@ -18,7 +18,7 @@ Windows 10 (1809+) and 11, 64-bit. The app is not code-signed yet: if SmartScree
 - Result copied to the clipboard and draggable out of the popup; size before → after.
 - Smart suggestions that learn which formats you use.
 - Progress on the taskbar button and the tray icon while working.
-- Explorer context menu, start with Windows, batch conversion.
+- Explorer context menu, start with Windows (on by default in the installer), batch conversion.
 - Light and dark themes, acrylic background on Windows 11, 13 languages.
 - Command line: `morphto convert`, `formats`, `presets`, `engines`.
 - Fully offline; no telemetry.

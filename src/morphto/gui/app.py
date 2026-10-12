@@ -35,6 +35,7 @@ class Controller(QObject):
         super().__init__()
         self.app = app
         self.settings = Settings.load()
+        self.settings.autostart = windows.autostart_enabled()  # the installer may have turned it on
         set_language(self.settings.language)
         self.icon = app_icon()
         app.setWindowIcon(self.icon)

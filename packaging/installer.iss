@@ -57,18 +57,26 @@ Name: "japanese"; MessagesFile: "compiler:Languages\Japanese.isl"
 
 [CustomMessages]
 AddToPath=Add the "morphto" command to PATH (for the command line)
+Autostart=Start MorphTo with Windows (recommended: the hotkey works right away)
 RemoveData=Also delete MorphTo settings and downloaded components (FFmpeg, HEIC encoder)?
 russian.AddToPath=Добавить команду "morphto" в PATH (для командной строки)
+russian.Autostart=Запускать MorphTo вместе с Windows (рекомендуется: сочетание клавиш работает сразу)
 russian.RemoveData=Удалить также настройки MorphTo и загруженные компоненты (FFmpeg, кодировщик HEIC)?
 ukrainian.AddToPath=Додати команду "morphto" до PATH (для командного рядка)
+ukrainian.Autostart=Запускати MorphTo разом з Windows (рекомендовано: сполучення клавіш працює одразу)
 ukrainian.RemoveData=Видалити також налаштування MorphTo та завантажені компоненти (FFmpeg, кодувальник HEIC)?
 
 [Tasks]
+Name: "autostart"; Description: "{cm:Autostart}"
 Name: "addtopath"; Description: "{cm:AddToPath}"
 Name: "desktopicon"; Description: "{cm:CreateDesktopIcon}"; GroupDescription: "{cm:AdditionalIcons}"; Flags: unchecked
 
 [Files]
 Source: "..\dist\MorphTo\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
+
+[Registry]
+; Same value the app writes in Settings → Start with Windows (so the checkbox there shows it).
+Root: HKCU; Subkey: "Software\Microsoft\Windows\CurrentVersion\Run"; ValueType: string; ValueName: "MorphTo"; ValueData: """{app}\{#AppExe}"" --background"; Flags: uninsdeletevalue; Tasks: autostart
 
 [Icons]
 Name: "{autoprograms}\{#AppName}"; Filename: "{app}\{#AppExe}"

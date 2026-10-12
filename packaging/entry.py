@@ -28,6 +28,24 @@ def _crash_log() -> None:
         pass
 
 
+def _attach_console() -> None:
+    """MorphTo.exe is a windowed app: in a real console window (cmd, Windows Terminal) it gets no usable
+    stdout/stderr. Attach to the console of morphto.com (our parent) and open it directly."""
+    if sys.stdout is not None and sys.stderr is not None and sys.stdin is not None:
+        return  # redirected to pipes/files: Python already set them up
+    import ctypes
+
+    ATTACH_PARENT_PROCESS = -1
+    if not ctypes.windll.kernel32.AttachConsole(ATTACH_PARENT_PROCESS):
+        return
+    if sys.stdout is None:
+        sys.stdout = open("CONOUT$", "w", encoding="utf-8", buffering=1)  # noqa: SIM115
+    if sys.stderr is None:
+        sys.stderr = open("CONOUT$", "w", encoding="utf-8", buffering=1)  # noqa: SIM115
+    if sys.stdin is None:
+        sys.stdin = open("CONIN$", encoding="utf-8")  # noqa: SIM115
+
+
 def cleanup() -> None:
     """Called by the uninstaller: remove what MorphTo put into the registry (autostart, Explorer menu)."""
     from morphto.core.formats import all_formats
@@ -41,6 +59,7 @@ def cleanup() -> None:
 def main() -> None:
     args = sys.argv[1:]
     if args[:1] == ["--cli"]:
+        _attach_console()
         from morphto.cli import main as cli_main
 
         cli_main(args[1:])

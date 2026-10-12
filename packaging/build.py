@@ -213,9 +213,9 @@ def release_old_dist() -> None:
     rename and we stop here, instead of half-deleting the folder under the running app."""
     if not DIST.exists():
         return
-    old = DIST.with_name(f"{DIST.name}.old")
-    if old.exists():
-        shutil.rmtree(old, ignore_errors=True)
+    for leftover in DIST.parent.glob(f"{DIST.name}.old*"):  # earlier builds that could not be deleted
+        shutil.rmtree(leftover, ignore_errors=True)
+    old = DIST.with_name(f"{DIST.name}.old-{os.getpid()}")
     try:
         DIST.rename(old)
     except PermissionError:
