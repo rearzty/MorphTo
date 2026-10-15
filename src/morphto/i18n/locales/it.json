@@ -3,6 +3,7 @@
   "popup.clipboard_hint": "Negli appunti: {what} — premi Ctrl+V",
   "popup.clipboard_image": "immagine {w}×{h}",
   "popup.files": "File: {count}",
+  "popup.pages": "Pagine: {count}",
   "popup.search": "Converti in…",
   "popup.no_targets": "Nessuna conversione disponibile",
   "popup.unsupported": "File non supportato: {name}",

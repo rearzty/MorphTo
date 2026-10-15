@@ -3,6 +3,7 @@
   "popup.clipboard_hint": "In der Zwischenablage: {what} — Strg+V drücken",
   "popup.clipboard_image": "Bild {w}×{h}",
   "popup.files": "Dateien: {count}",
+  "popup.pages": "Seiten: {count}",
   "popup.search": "Konvertieren in…",
   "popup.no_targets": "Keine Konvertierung verfügbar",
   "popup.unsupported": "Nicht unterstützte Datei: {name}",

@@ -1,5 +1,19 @@
 # Changelog
 
+## [0.2.0] - 2026-10-15
+
+Documents, spreadsheets and presentations.
+
+### Added
+- PDF to PNG, JPEG, WebP, BMP or TIFF, built in (PDFium). Several pages give a folder of images
+  (`page-01.png`…) or one multi-page TIFF. PDF to TXT extracts the text.
+- Word (DOCX, DOC), OpenDocument (ODT, ODS, ODP), RTF and TXT, Excel (XLSX, XLS, CSV) and PowerPoint (PPTX, PPT):
+  to PDF, to each other within the same kind, and to images page by page.
+- These office conversions use an installed LibreOffice, or download it on first use (~360 MB, unpacked into
+  MorphTo's folder, nothing installed into Windows). With Microsoft Office installed, Word / Excel / PowerPoint to
+  PDF goes through Office and needs no download.
+- Office files are recognised by their content, not only by the extension.
+
 ## [0.1.0] - 2026-10-12
 
 First public beta.

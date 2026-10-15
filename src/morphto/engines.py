@@ -1,5 +1,5 @@
-"""Optional engines, downloaded only when first needed: programs such as FFmpeg, and Python packages
-such as the HEIC encoder (pillow-heif)."""
+"""Optional engines, downloaded only when first needed: programs such as FFmpeg and LibreOffice, and
+Python packages such as the HEIC encoder (pillow-heif)."""
 
 from __future__ import annotations
 
@@ -9,6 +9,7 @@ import importlib
 import importlib.util
 import json
 import os
+import re
 import shutil
 import subprocess
 import sys
@@ -384,12 +385,169 @@ HEIF_ENCODER = WheelEngine(
     size_mb=7,
 )
 
-_ENGINES = {e.id: e for e in (FFMPEG, HEIF_ENCODER)}
+
+_LO_STABLE = "https://download.documentfoundation.org/libreoffice/stable/"
+
+# Parts of LibreOffice that converting files never touches: spell-check dictionaries, translations of the
+# UI, help, galleries, templates, icon themes, the bundled Python. Removing them cuts ~1.5 GB to ~0.5 GB.
+_LO_PRUNE = (
+    "help", "readmes", "System", "System64", "CREDITS.fodt",
+    "program/resource", "program/wizards", "program/shlxthdl", "program/python-core-*",
+    "share/extensions", "share/gallery", "share/template", "share/autotext", "share/wizards", "share/basic",
+    "share/registry/res", "share/config/images_*",
+)  # fmt: skip
 
 
-def get(engine_id: str) -> Engine | WheelEngine:
+@dataclass
+class OfficeEngine:
+    """LibreOffice, used headless for Word / Excel / PowerPoint / OpenDocument files.
+
+    An installed LibreOffice is used as is. Otherwise the newest stable MSI is downloaded from
+    documentfoundation.org, checked against its published sha256, unpacked with an *administrative*
+    install (``msiexec /a``: just extracts files, no admin rights, nothing registered in Windows) and pruned.
+    """
+
+    id: str = "libreoffice"
+    name: str = "LibreOffice"
+    size_mb: int = 360
+    env_var: str = "MORPHTO_LIBREOFFICE"
+    _lock: threading.Lock = field(default_factory=threading.Lock, repr=False)
+
+    @property
+    def install_dir(self) -> Path:
+        return engines_dir() / self.id
+
+    @property
+    def profile_dir(self) -> Path:
+        """LibreOffice's user profile for our headless runs, kept apart from the user's own."""
+        return engines_dir() / f"{self.id}-profile"
+
+    def _system_candidates(self) -> list[Path]:
+        candidates = []
+        override = os.environ.get(self.env_var)
+        if override:
+            candidates.append(Path(override))
+        for env in ("ProgramFiles", "ProgramW6432", "ProgramFiles(x86)"):
+            base = os.environ.get(env)
+            if base:
+                candidates.append(Path(base) / "LibreOffice" / "program" / "soffice.com")
+        found = shutil.which("soffice")
+        if found:
+            candidates.append(Path(found).with_suffix(".com"))
+        return candidates
+
+    def tool(self, name: str = "soffice") -> Path | None:
+        managed = self.install_dir / "program" / "soffice.com"
+        if managed.is_file():
+            return managed
+        return next((p for p in self._system_candidates() if p.is_file()), None)
+
+    def available(self) -> bool:
+        return self.tool() is not None
+
+    def source(self) -> str | None:
+        if (self.install_dir / "program" / "soffice.com").is_file():
+            return "managed"
+        return "system" if self.available() else None
+
+    def prune(self) -> None:
+        pass
+
+    def latest_msi(self) -> str:
+        listing = _fetch_text(_LO_STABLE)
+        versions = {tuple(int(x) for x in m) for m in re.findall(r'href="(\d+)\.(\d+)\.(\d+)/"', listing)}
+        if not versions:
+            raise EngineInstallError(f"{self.name}: cannot find a stable version at {_LO_STABLE}")
+        v = ".".join(map(str, max(versions)))
+        return f"{_LO_STABLE}{v}/win/x86_64/LibreOffice_{v}_Win_x86-64.msi"
+
+    def install(self, progress: ProgressFn | None = None, cancel: threading.Event | None = None) -> None:
+        progress = progress or (lambda _f: None)
+        cancel = cancel or threading.Event()
+        with self._lock:
+            url = self.latest_msi()
+            expected = _fetch_text(f"{url}.sha256").split()[0].lower()
+            target = self.install_dir
+            target.parent.mkdir(parents=True, exist_ok=True)
+            # Not tempfile: since Python 3.13 its folders are private to the user, and msiexec unpacks
+            # through the Windows Installer service, which then fails with error 1603.
+            # Short names: LibreOffice's deepest paths are ~110 characters, and MAX_PATH still applies.
+            tmp = target.parent / f"lo-{os.getpid()}"
+            shutil.rmtree(tmp, ignore_errors=True)
+            tmp.mkdir()
+            try:
+                msi = tmp / "libreoffice.msi"
+                digest = _download(url, msi, lambda f: progress(f * 0.8), cancel)
+                if digest != expected:
+                    raise EngineInstallError(f"{self.name}: checksum mismatch, download is corrupted")
+                staging = tmp / "x"
+                self._extract(msi, staging, progress, cancel)
+                _prune_tree(staging, _LO_PRUNE)
+                if not (staging / "program" / "soffice.com").is_file():
+                    raise EngineInstallError(f"{self.name}: the package has no program/soffice.com")
+                if target.exists():
+                    shutil.rmtree(target)
+                staging.rename(target)
+            finally:
+                shutil.rmtree(tmp, ignore_errors=True)
+        progress(1.0)
+
+    @staticmethod
+    def _extract(msi: Path, dest: Path, progress: ProgressFn, cancel: threading.Event) -> None:
+        log = msi.with_suffix(".log")
+        cmd = ["msiexec.exe", "/a", str(msi), "/qn", f"TARGETDIR={dest}", "/L*", str(log)]
+        proc = subprocess.Popen(cmd, creationflags=_NO_WINDOW)
+        fraction = 0.8
+        try:
+            while proc.poll() is None:
+                if cancel.wait(0.5):
+                    proc.kill()
+                    proc.wait()
+                    raise EngineInstallError("Cancelled")
+                fraction = min(0.98, fraction + 0.002)  # msiexec reports nothing; ~1 min to unpack
+                progress(fraction)
+        finally:
+            if proc.poll() is None:
+                proc.kill()
+                proc.wait()
+        if proc.returncode != 0:
+            raise EngineInstallError(
+                f"Cannot unpack {msi.name}: msiexec exit code {proc.returncode}. {_msi_error(log)}"
+            )
+        (dest / msi.name).unlink(missing_ok=True)  # the administrative image keeps a copy of the MSI
+
+    def remove(self) -> None:
+        with self._lock:
+            for folder in (self.install_dir, self.profile_dir):
+                if folder.exists():
+                    shutil.rmtree(folder)
+
+
+def _msi_error(log: Path) -> str:
+    """The first error message from an msiexec log (UTF-16), if any."""
+    try:
+        text = log.read_bytes().decode("utf-16", "replace")
+    except OSError:
+        return ""
+    found = re.search(r"^\S+ 1\d{3}\..*$", text, re.MULTILINE)  # "Error 1304. ..." in the system language
+    return found.group(0).strip() if found else ""
+
+
+def _prune_tree(root: Path, patterns: tuple[str, ...]) -> None:
+    for pattern in patterns:
+        for item in root.glob(pattern):
+            with contextlib.suppress(OSError):
+                shutil.rmtree(item) if item.is_dir() else item.unlink()
+
+
+LIBREOFFICE = OfficeEngine()
+
+_ENGINES = {e.id: e for e in (FFMPEG, HEIF_ENCODER, LIBREOFFICE)}
+
+
+def get(engine_id: str) -> Engine | WheelEngine | OfficeEngine:
     return _ENGINES[engine_id]
 
 
-def all_engines() -> list[Engine | WheelEngine]:
+def all_engines() -> list[Engine | WheelEngine | OfficeEngine]:
     return list(_ENGINES.values())

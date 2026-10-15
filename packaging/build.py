@@ -13,6 +13,7 @@ import os
 import shutil
 import subprocess
 import sys
+from fnmatch import fnmatch
 from io import BytesIO
 from pathlib import Path
 
@@ -151,6 +152,8 @@ BUNDLED = [
     ("shiboken6", "LGPL-3.0", []),
     ("pillow", "MIT-CMU, with the licenses of its bundled image libraries", ["LICENSE"]),
     ("pi-heif", "BSD-3-Clause; libheif and libde265 are LGPL-3.0", ["LICENSE.txt", "LICENSES_bundled.txt"]),
+    ("pypdfium2", "BSD-3-Clause or Apache-2.0; PDFium is BSD-3-Clause, with the licenses of its libraries",
+     ["BSD-3-Clause.txt", "*/BUILD_LICENSES/*"]),
     ("pyinstaller", "GPL-2.0-or-later with the bootloader exception (only its bootloader is shipped)", ["COPYING.txt"]),
 ]  # fmt: skip
 
@@ -175,19 +178,20 @@ def make_notices(dest: Path) -> None:
         dist = distribution(name)
         lines.append(f"  - {dist.metadata['Name']} {dist.version} — {license_name}")
         for wanted in files:
+            # A plain name: the first file with that name. A pattern: every matching file.
             for f in dist.files or []:
-                if f.name == wanted:
-                    texts.append(
-                        section(
-                            f"{dist.metadata['Name']} {dist.version}: {wanted}", f.read_text(encoding="utf-8")
-                        )
-                    )
-                    break
+                rel = str(f).replace("\\", "/")
+                if f.name == wanted or ("/" in wanted and fnmatch(rel, wanted)):
+                    title = f"{dist.metadata['Name']} {dist.version}: {f.name}"
+                    texts.append(section(title, f.locate().read_text(encoding="utf-8", errors="replace")))
+                    if "/" not in wanted:
+                        break
     lines += [
         "",
         "Optional components downloaded on first use (not part of this package):",
         "  - FFmpeg (www.gyan.dev builds) — GPL-3.0",
         "  - pillow-heif, the HEIC encoder (from PyPI) — BSD-3-Clause; libheif/libde265 LGPL-3.0, x265 GPL-2.0",
+        "  - LibreOffice (www.libreoffice.org), for office documents — MPL-2.0, unless already installed",
         "",
         "Qt and Qt for Python are used as unmodified dynamically linked libraries, so they can be replaced by",
         "the user, as the LGPL requires. Their source code is available from https://download.qt.io/.",

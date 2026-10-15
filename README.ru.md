@@ -7,7 +7,7 @@
 **Нажал сочетание, вставил, выбрал формат. Готово.**
 
 Быстрый и лёгкий конвертер файлов для Windows, который живёт в трее.
-Картинки, аудио и видео, полностью офлайн.
+Картинки, аудио, видео, документы и презентации, полностью офлайн.
 
 [**⬇ Скачать для Windows**](https://github.com/rearzty/MorphTo/releases/latest/download/MorphTo-setup.exe)
 &nbsp;·&nbsp; [Portable-архив](https://github.com/rearzty/MorphTo/releases/latest)
@@ -26,7 +26,7 @@ Windows 10 (1809+) и 11 · 64 бита · ~22 МБ · бесплатно и с 
 
 1. Нажмите <kbd>Win</kbd>+<kbd>Alt</kbd>+<kbd>C</kbd> в любом месте. Появится небольшое окно.
 2. Вставьте файл или скриншот через <kbd>Ctrl</kbd>+<kbd>V</kbd>, перетащите файлы в окно или выберите их кликом.
-3. Введите формат (`jpg`, `mp4`, `mp3`…) и нажмите <kbd>Enter</kbd>.
+3. Введите формат (`jpg`, `mp4`, `pdf`…) и нажмите <kbd>Enter</kbd>.
 
 Результат сохраняется и копируется в буфер обмена, его сразу можно вставить в чат, письмо или папку.
 А можно просто перетащить его прямо из окна.
@@ -62,18 +62,29 @@ Windows 10 (1809+) и 11 · 64 бита · ~22 МБ · бесплатно и с 
 | Изображения | PNG, JPEG, WebP, AVIF, HEIC/HEIF, GIF (анимированный), BMP, TIFF, ICO, ICNS, TGA, JPEG 2000, PSD | все, кроме PSD, плюс PDF |
 | Аудио | MP3, WAV, FLAC, OGG, Opus, M4A, AAC, WMA, AIFF | те же |
 | Видео | MP4, MKV, WebM, MOV, AVI, WMV, FLV, MPEG, TS, 3GP, OGV, GIF | MP4, MKV, WebM, MOV, AVI, WMV, FLV, GIF и любой аудиоформат |
+| Документы | DOCX, DOC, ODT, RTF, TXT, PDF | PDF, DOCX, DOC, ODT, RTF, TXT; страницы в PNG, JPEG, WebP, TIFF |
+| Таблицы | XLSX, XLS, ODS, CSV | PDF, XLSX, XLS, ODS, CSV; страницы картинками |
+| Презентации | PPTX, PPT, ODP | PDF, PPTX, PPT, ODP; слайды картинками |
 
-В планах: документы, архивы, шрифты, электронные книги.
+Многостраничный PDF (или документ, таблица, презентация) превращается в папку с картинками
+`page-01.png`, `page-02.png`… или в один многостраничный TIFF. PDF в TXT извлекает текст.
+
+В планах: архивы, шрифты, электронные книги.
 
 ### Дополнительные компоненты
 
-Чтобы приложение оставалось лёгким, два компонента скачиваются только тогда, когда впервые понадобятся.
+Чтобы приложение оставалось лёгким, некоторые компоненты скачиваются только тогда, когда впервые понадобятся.
 MorphTo сначала спрашивает, затем скачивает, проверяет контрольную сумму и продолжает конвертацию.
 
 | Компонент | Зачем | Размер |
 |---|---|---|
 | FFmpeg (сборка www.gyan.dev) | аудио и видео | ~34 МБ |
 | Кодировщик HEIC (pillow-heif с PyPI) | сохранение *в* HEIC (чтение HEIC работает сразу) | ~7 МБ |
+| LibreOffice (libreoffice.org) | файлы Word, Excel, PowerPoint и OpenDocument | ~360 МБ или ничего, если он уже установлен |
+
+Для PDF ничего докачивать не нужно. Если установлен Microsoft Office, MorphTo использует его для перевода
+Word, Excel и PowerPoint в PDF (вёрстка точно как в Office), а LibreOffice нужен только для остальных
+конвертаций. Скачанный LibreOffice распаковывается в папку MorphTo: в Windows ничего не устанавливается.
 
 Установить или удалить их можно и вручную: Настройки → Компоненты или `morphto engines install ffmpeg`.
 
@@ -111,8 +122,8 @@ morphto engines                                   # дополнительные
 ## Приватность
 
 Всё происходит на вашем компьютере. Никаких аккаунтов, телеметрии и проверок обновлений. В интернет MorphTo
-выходит только для загрузки дополнительного компонента, когда вы на это согласились (`www.gyan.dev` для FFmpeg
-и `pypi.org` для кодировщика HEIC).
+выходит только для загрузки дополнительного компонента, когда вы на это согласились (`www.gyan.dev` для FFmpeg,
+`pypi.org` для кодировщика HEIC и `download.documentfoundation.org` для LibreOffice).
 
 ## Вопросы и ответы
 
@@ -162,6 +173,6 @@ dist\MorphTo\MorphTo.exe --self-test some-photo.png   # прогоняет на�
 MorphTo — свободная программа под лицензией [GNU General Public License v3.0 или новее](LICENSE).
 Copyright © 2026 rearzty.
 
-В приложение входят Qt / PySide6 (LGPL-3.0), Python (лицензия PSF), Pillow (MIT-CMU) и pi-heif (BSD-3-Clause,
-с libheif и libde265 под LGPL-3.0). Полные тексты лицензий лежат рядом с приложением в `THIRD-PARTY-NOTICES.txt`.
-FFmpeg распространяется под GPL и скачивается отдельно.
+В приложение входят Qt / PySide6 (LGPL-3.0), Python (лицензия PSF), Pillow (MIT-CMU), pi-heif (BSD-3-Clause,
+с libheif и libde265 под LGPL-3.0) и pypdfium2 / PDFium (BSD-3-Clause, Apache-2.0). Полные тексты лицензий лежат рядом с приложением в `THIRD-PARTY-NOTICES.txt`.
+FFmpeg (GPL) и LibreOffice (MPL-2.0) скачиваются отдельно.

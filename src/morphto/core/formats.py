@@ -11,6 +11,8 @@ class Category(StrEnum):
     AUDIO = "audio"
     VIDEO = "video"
     DOCUMENT = "document"
+    SPREADSHEET = "spreadsheet"
+    PRESENTATION = "presentation"
 
 
 @dataclass(frozen=True, slots=True)
@@ -62,6 +64,7 @@ def all_formats() -> list[Format]:
 
 
 _I, _A, _V, _D = Category.IMAGE, Category.AUDIO, Category.VIDEO, Category.DOCUMENT
+_S, _P = Category.SPREADSHEET, Category.PRESENTATION
 
 for _f in [
     # Images
@@ -80,6 +83,20 @@ for _f in [
     Format("psd", "Photoshop", _I, ("psd",)),
     # Documents
     Format("pdf", "PDF", _D, ("pdf",)),
+    Format("docx", "Word document", _D, ("docx",)),
+    Format("doc", "Word 97–2003", _D, ("doc",)),
+    Format("odt", "OpenDocument text", _D, ("odt",)),
+    Format("rtf", "Rich Text", _D, ("rtf",)),
+    Format("txt", "Plain text", _D, ("txt",)),
+    # Spreadsheets
+    Format("xlsx", "Excel workbook", _S, ("xlsx",)),
+    Format("xls", "Excel 97–2003", _S, ("xls",)),
+    Format("ods", "OpenDocument spreadsheet", _S, ("ods",)),
+    Format("csv", "CSV", _S, ("csv",)),
+    # Presentations
+    Format("pptx", "PowerPoint", _P, ("pptx",)),
+    Format("ppt", "PowerPoint 97–2003", _P, ("ppt",)),
+    Format("odp", "OpenDocument presentation", _P, ("odp",)),
     # Audio
     Format("mp3", "MP3", _A, ("mp3",)),
     Format("wav", "WAV", _A, ("wav",)),

@@ -7,7 +7,7 @@
 **Press a hotkey, paste, pick a format. Done.**
 
 A fast, lightweight file converter for Windows that lives in the tray.
-Images, audio and video, fully offline.
+Images, audio, video, documents and presentations, fully offline.
 
 [**⬇ Download for Windows**](https://github.com/rearzty/MorphTo/releases/latest/download/MorphTo-setup.exe)
 &nbsp;·&nbsp; [Portable zip](https://github.com/rearzty/MorphTo/releases/latest)
@@ -26,7 +26,7 @@ Windows 10 (1809+) and 11 · 64-bit · ~22 MB download · free and open source (
 
 1. Press <kbd>Win</kbd>+<kbd>Alt</kbd>+<kbd>C</kbd> anywhere. A small popup appears.
 2. Paste a file or a screenshot with <kbd>Ctrl</kbd>+<kbd>V</kbd>, drop files onto it, or click to browse.
-3. Type a format (`jpg`, `mp4`, `mp3`…) and press <kbd>Enter</kbd>.
+3. Type a format (`jpg`, `mp4`, `pdf`…) and press <kbd>Enter</kbd>.
 
 The result is saved and copied to the clipboard, ready to paste into a chat, an email or a folder.
 You can also drag it straight out of the popup.
@@ -62,18 +62,29 @@ You can also drag it straight out of the popup.
 | Images | PNG, JPEG, WebP, AVIF, HEIC/HEIF, GIF (animated), BMP, TIFF, ICO, ICNS, TGA, JPEG 2000, PSD | all of these except PSD, plus PDF |
 | Audio | MP3, WAV, FLAC, OGG, Opus, M4A, AAC, WMA, AIFF | the same |
 | Video | MP4, MKV, WebM, MOV, AVI, WMV, FLV, MPEG, TS, 3GP, OGV, GIF | MP4, MKV, WebM, MOV, AVI, WMV, FLV, GIF, and any audio format |
+| Documents | DOCX, DOC, ODT, RTF, TXT, PDF | PDF, DOCX, DOC, ODT, RTF, TXT; pages as PNG, JPEG, WebP, TIFF |
+| Spreadsheets | XLSX, XLS, ODS, CSV | PDF, XLSX, XLS, ODS, CSV; pages as images |
+| Presentations | PPTX, PPT, ODP | PDF, PPTX, PPT, ODP; slides as images |
 
-More categories (documents, archives, fonts, ebooks) are planned.
+A PDF (or a document, a spreadsheet, slides) with several pages turns into a folder of images,
+`page-01.png`, `page-02.png`…, or into one multi-page TIFF. PDF to TXT extracts the text.
+
+More categories (archives, fonts, ebooks) are planned.
 
 ### Optional components
 
-To keep the app small, two components are downloaded only the first time you need them. MorphTo asks first,
+To keep the app small, some components are downloaded only the first time you need them. MorphTo asks first,
 then downloads, verifies the checksum and continues the conversion.
 
 | Component | Needed for | Download |
 |---|---|---|
 | FFmpeg (www.gyan.dev build) | audio and video | ~34 MB |
 | HEIC encoder (pillow-heif from PyPI) | saving *to* HEIC (reading HEIC works out of the box) | ~7 MB |
+| LibreOffice (libreoffice.org) | Word, Excel, PowerPoint and OpenDocument files | ~360 MB, or none if it is already installed |
+
+PDF files need nothing extra. If Microsoft Office is installed, MorphTo uses it for Word, Excel and PowerPoint
+to PDF (the layout is exactly as in Office), so LibreOffice is only needed for the other conversions.
+The downloaded LibreOffice is unpacked into MorphTo's own folder: nothing is installed into Windows.
 
 You can also install or remove them in Settings → Components, or with `morphto engines install ffmpeg`.
 
@@ -111,8 +122,8 @@ morphto engines                                   # optional components
 ## Privacy
 
 Everything happens on your computer. MorphTo has no accounts, no telemetry and no update pings. It goes online
-only to download an optional component when you agree to it (from `www.gyan.dev` for FFmpeg and `pypi.org`
-for the HEIC encoder).
+only to download an optional component when you agree to it (from `www.gyan.dev` for FFmpeg, `pypi.org`
+for the HEIC encoder and `download.documentfoundation.org` for LibreOffice).
 
 ## FAQ
 
@@ -160,7 +171,7 @@ script is `packaging/installer.iss` (Inno Setup 6).
 ```text
 src/morphto/
   core/         formats, signature detection, converter graph, targets and presets
-  converters/   Pillow (images), FFmpeg (audio/video), HEIC encoder
+  converters/   Pillow (images), FFmpeg (audio/video), HEIC encoder, PDFium (PDF), LibreOffice / MS Office
   engines.py    on-demand download of optional components
   gui/          tray app, popup, settings, welcome, taskbar progress, Windows 11 effects
   platform/     Windows integration: hotkey, clipboard, single instance, autostart, Explorer menu
@@ -185,6 +196,6 @@ Bug reports, ideas and pull requests are welcome.
 MorphTo is free software under the [GNU General Public License v3.0 or later](LICENSE).
 Copyright © 2026 rearzty.
 
-The app bundles Qt / PySide6 (LGPL-3.0), Python (PSF License), Pillow (MIT-CMU) and pi-heif (BSD-3-Clause,
-with LGPL-3.0 libheif and libde265). The full texts ship with the app in `THIRD-PARTY-NOTICES.txt`.
-FFmpeg is GPL-licensed and downloaded separately.
+The app bundles Qt / PySide6 (LGPL-3.0), Python (PSF License), Pillow (MIT-CMU), pi-heif (BSD-3-Clause,
+with LGPL-3.0 libheif and libde265) and pypdfium2 / PDFium (BSD-3-Clause, Apache-2.0). The full texts ship with the app in `THIRD-PARTY-NOTICES.txt`.
+FFmpeg (GPL) and LibreOffice (MPL-2.0) are downloaded separately.

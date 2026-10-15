@@ -3,6 +3,7 @@
   "popup.clipboard_hint": "Na área de transferência: {what} — pressione Ctrl+V",
   "popup.clipboard_image": "imagem {w}×{h}",
   "popup.files": "Arquivos: {count}",
+  "popup.pages": "Páginas: {count}",
   "popup.search": "Converter para…",
   "popup.no_targets": "Nenhuma conversão disponível",
   "popup.unsupported": "Arquivo não suportado: {name}",

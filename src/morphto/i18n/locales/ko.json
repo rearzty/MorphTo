@@ -3,6 +3,7 @@
   "popup.clipboard_hint": "클립보드: {what} — Ctrl+V를 누르세요",
   "popup.clipboard_image": "이미지 {w}×{h}",
   "popup.files": "파일: {count}",
+  "popup.pages": "페이지: {count}",
   "popup.search": "변환할 형식…",
   "popup.no_targets": "사용 가능한 변환이 없습니다",
   "popup.unsupported": "지원하지 않는 파일: {name}",

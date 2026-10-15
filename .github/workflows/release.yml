@@ -33,8 +33,10 @@ jobs:
       - name: Self-test the packaged app
         shell: pwsh
         run: |
-          python -c "from PIL import Image; Image.new('RGB', (64, 48), 'teal').save('sample.png')"
+          python -c "from PIL import Image; im = Image.new('RGB', (64, 48), 'teal'); im.save('sample.png'); im.save('sample.pdf')"
           dist\MorphTo\MorphTo.exe --self-test sample.png jpg | Out-Host
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          dist\MorphTo\MorphTo.exe --self-test sample.pdf png | Out-Host
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
       - name: Build the installer
         shell: pwsh

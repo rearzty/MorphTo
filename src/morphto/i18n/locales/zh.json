@@ -3,6 +3,7 @@
   "popup.clipboard_hint": "剪贴板中有：{what} — 按 Ctrl+V",
   "popup.clipboard_image": "图片 {w}×{h}",
   "popup.files": "文件：{count}",
+  "popup.pages": "页数：{count}",
   "popup.search": "转换为…",
   "popup.no_targets": "没有可用的转换",
   "popup.unsupported": "不支持的文件：{name}",

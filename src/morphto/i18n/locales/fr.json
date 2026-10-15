@@ -3,6 +3,7 @@
   "popup.clipboard_hint": "Dans le presse-papiers : {what} — appuyez sur Ctrl+V",
   "popup.clipboard_image": "image {w}×{h}",
   "popup.files": "Fichiers : {count}",
+  "popup.pages": "Pages : {count}",
   "popup.search": "Convertir en…",
   "popup.no_targets": "Aucune conversion disponible",
   "popup.unsupported": "Fichier non pris en charge : {name}",

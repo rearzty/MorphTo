@@ -3,6 +3,7 @@
   "popup.clipboard_hint": "En el portapapeles: {what} — pulsa Ctrl+V",
   "popup.clipboard_image": "imagen {w}×{h}",
   "popup.files": "Archivos: {count}",
+  "popup.pages": "Páginas: {count}",
   "popup.search": "Convertir a…",
   "popup.no_targets": "No hay conversiones disponibles",
   "popup.unsupported": "Archivo no compatible: {name}",

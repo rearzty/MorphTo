@@ -3,6 +3,7 @@
   "popup.clipboard_hint": "Panoda: {what} — Ctrl+V'ye basın",
   "popup.clipboard_image": "görüntü {w}×{h}",
   "popup.files": "Dosyalar: {count}",
+  "popup.pages": "Sayfa: {count}",
   "popup.search": "Şuna dönüştür…",
   "popup.no_targets": "Kullanılabilir dönüştürme yok",
   "popup.unsupported": "Desteklenmeyen dosya: {name}",

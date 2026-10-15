@@ -8,7 +8,7 @@ import threading
 from pathlib import Path
 
 from morphto.core.detect import detect
-from morphto.core.formats import Format, get_format
+from morphto.core.formats import Category, Format, get_format
 from morphto.core.options import Options
 from morphto.core.registry import (
     CancelledError,
@@ -40,11 +40,25 @@ class EngineMissingError(ConversionError):
 def plan(src_fmt: Format, dst_fmt: Format, registry: Registry | None = None) -> list[Step]:
     registry = registry or default_registry()
     path = registry.find_path(src_fmt.id, dst_fmt.id)
-    # Changing category (image -> video, video -> image ...) only through a direct converter; otherwise
-    # we'd produce nonsense like PNG -> one-frame GIF -> MP4.
-    if path is None or (dst_fmt.category != src_fmt.category and len(path) > 1):
+    if path is None or not _sensible_path(src_fmt, dst_fmt, path):
         raise ConversionError(f"Cannot convert {src_fmt.name} to {dst_fmt.name}")
     return path
+
+
+_OFFICE = {Category.DOCUMENT, Category.SPREADSHEET, Category.PRESENTATION}
+
+
+def _sensible_path(src_fmt: Format, dst_fmt: Format, path: list[Step]) -> bool:
+    between = [step.dst for step in path[:-1]]
+    # Plain text keeps nothing but the words: PDF -> TXT -> DOCX would pass for a "PDF to Word" converter.
+    if "txt" in between:
+        return False
+    # Changing category (image -> video, video -> image ...) only through a direct converter, or from an
+    # office file through PDF (slides -> PDF -> PNG pages). Otherwise we'd produce nonsense like
+    # PNG -> one-frame GIF -> MP4, or PNG -> PDF -> TXT (an empty text file: there is no OCR).
+    if dst_fmt.category == src_fmt.category or not between:
+        return True
+    return src_fmt.category in _OFFICE and all(fmt == "pdf" for fmt in between)
 
 
 def required_engines(steps: list[Step]) -> list[str]:
@@ -64,6 +78,14 @@ def output_path(source_stem: str, dst_fmt: Format, out_dir: Path) -> Path:
     return candidate
 
 
+def _unique(path: Path) -> Path:
+    candidate, n = path, 1
+    while candidate.exists():
+        candidate = path.with_name(f"{path.name} ({n})")
+        n += 1
+    return candidate
+
+
 def convert(
     source: str | Path,
     target: str | Format,
@@ -79,6 +101,8 @@ def convert(
 
     The result goes to ``output`` if given, else into ``out_dir`` (default: next to the source).
     Existing files are never overwritten unless ``output`` names them explicitly.
+    A multi-page document converted to images gives a folder of pages (``report/page-01.png`` ...),
+    and the folder is what is returned.
     """
     source = Path(source)
     if not source.is_file():
@@ -117,9 +141,17 @@ def convert(
                 raise
             except Exception as exc:  # converters wrap third-party libraries; surface a clean message
                 raise ConversionError(f"{step.converter.name}: {exc}") from exc
-            if not step_out.is_file():
+            if step_out.is_dir() and i == len(steps) - 1:
+                pass  # several output files (pages): handled below
+            elif not step_out.is_file():
                 raise ConversionError(f"{step.converter.name} produced no output")
             current, current_fmt = step_out, step_fmt
+        if current.is_dir():
+            final = _unique(final.with_suffix(""))
+            final.parent.mkdir(parents=True, exist_ok=True)
+            shutil.move(str(current), final)
+            report(1.0)
+            return final
         final.parent.mkdir(parents=True, exist_ok=True)
         shutil.move(str(current), final)
     report(1.0)

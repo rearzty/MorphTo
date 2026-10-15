@@ -42,6 +42,8 @@ CATEGORY_COLORS = {
     Category.VIDEO: "#F0457E",
     Category.AUDIO: "#1FB89C",
     Category.DOCUMENT: "#4F8BFF",
+    Category.SPREADSHEET: "#22A861",
+    Category.PRESENTATION: "#E8613A",
 }
 PRESET_COLOR = "#7C6CFF"
 

@@ -20,7 +20,8 @@ def detect(path: str | Path) -> Format | None:
             head = f.read(_HEAD_SIZE)
     except OSError:
         return None
-    fmt_id = sniff(head, path.suffix.lower().lstrip("."))
+    ext = path.suffix.lower().lstrip(".")
+    fmt_id = _sniff_zip(path, ext) if head.startswith(b"PK\x03\x04") else sniff(head, ext)
     if fmt_id is not None:
         return find_format(fmt_id)
     fmt = by_extension(path.suffix)
@@ -39,6 +40,11 @@ def sniff(head: bytes, ext: str = "") -> str | None:
         return "gif"
     if head.startswith(b"%PDF"):
         return "pdf"
+    if head.startswith(b"{\\rtf"):
+        return "rtf"
+    if head.startswith(b"\xd0\xcf\x11\xe0\xa1\xb1\x1a\xe1"):
+        # OLE2 container: Word/Excel/PowerPoint 97-2003 (and MSI, MSG...): trust the extension
+        return ext if ext in ("doc", "xls", "ppt") else None
     if head.startswith(b"8BPS"):
         return "psd"
     if head.startswith(b"icns"):
@@ -83,6 +89,33 @@ def sniff(head: bytes, ext: str = "") -> str | None:
     if len(head) >= 2 and head[0] == 0xFF and head[1] & 0xE0 == 0xE0:
         return "mp3"  # MPEG audio frame sync
     return None
+
+
+_ODF_MIMETYPES = {
+    b"application/vnd.oasis.opendocument.text": "odt",
+    b"application/vnd.oasis.opendocument.spreadsheet": "ods",
+    b"application/vnd.oasis.opendocument.presentation": "odp",
+}
+_OOXML_PARTS = {"word/document.xml": "docx", "xl/workbook.xml": "xlsx", "ppt/presentation.xml": "pptx"}
+
+
+def _sniff_zip(path: Path, ext: str) -> str | None:
+    """ZIP-based documents: Office Open XML (docx/xlsx/pptx) and OpenDocument (odt/ods/odp)."""
+    import zipfile
+
+    try:
+        with zipfile.ZipFile(path) as zf:
+            names = set(zf.namelist())
+            if "mimetype" in names:
+                fmt = _ODF_MIMETYPES.get(zf.read("mimetype").strip())
+                if fmt:
+                    return fmt
+            for part, fmt in _OOXML_PARTS.items():
+                if part in names:
+                    return fmt
+    except (OSError, zipfile.BadZipFile, KeyError):
+        return None
+    return None  # some other ZIP (archives are not supported yet)
 
 
 def _sniff_isobmff(head: bytes, ext: str) -> str:

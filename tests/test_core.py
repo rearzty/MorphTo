@@ -68,7 +68,7 @@ def test_cross_category_multi_hop_is_refused(png):
 
 
 def test_unknown_input(tmp_path):
-    f = tmp_path / "notes.txt"
+    f = tmp_path / "notes.xyz"
     f.write_text("hello")
     with pytest.raises(ConversionError):
         convert(f, "png")

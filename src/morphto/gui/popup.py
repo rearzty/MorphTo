@@ -289,17 +289,24 @@ class ResultCard(QFrame):
     def set_results(self, paths: list[Path], before: int) -> None:
         self.paths = paths
         first = paths[0]
-        name = first.name if len(paths) == 1 else tr("popup.files", count=len(paths))
+        if len(paths) > 1:
+            name = tr("popup.files", count=len(paths))
+        elif first.is_dir():  # a document turned into one image per page
+            name = f"{first.name} — {tr('popup.pages', count=sum(1 for p in first.iterdir() if p.is_file()))}"
+        else:
+            name = first.name
         self.name.setText(self.name.fontMetrics().elidedText(name, Qt.TextElideMode.ElideMiddle, 250))
         self.sizes.setText(size_change(before, sum(_file_size(p) for p in paths)))
         self.hint.setText("⇱ " + tr("popup.drag_hint"))
-        thumb = image_thumbnail(first, 36) if first.suffix.lower() not in (".pdf",) else None
+        sample = _first_file(first)
+        thumb = image_thumbnail(sample, 36) if sample and sample.suffix.lower() not in (".pdf",) else None
         if thumb:
             self.thumb.setPixmap(thumb[0])
         else:
-            fmt = detect(first)
+            fmt = detect(sample) if sample else None
             color = theme.CATEGORY_COLORS[fmt.category] if fmt else self.popup.pal.accent
-            self.thumb.setPixmap(badge_pixmap(first.suffix.lstrip(".").upper()[:4], color, QSize(36, 36), 8))
+            label = sample.suffix.lstrip(".").upper()[:4] if sample else "…"
+            self.thumb.setPixmap(badge_pixmap(label, color, QSize(36, 36), 8))
 
     def mousePressEvent(self, event) -> None:
         if event.button() == Qt.MouseButton.LeftButton:
@@ -1090,6 +1097,18 @@ def _safe_required(fmt: Format, target: Target) -> list[str]:
 
 def _file_size(path: Path) -> int:
     try:
+        if path.is_dir():
+            return sum(p.stat().st_size for p in path.iterdir() if p.is_file())
         return path.stat().st_size
     except OSError:
         return 0
+
+
+def _first_file(path: Path) -> Path | None:
+    """The file itself, or the first page in a folder of pages."""
+    if not path.is_dir():
+        return path
+    try:
+        return min((p for p in path.iterdir() if p.is_file()), default=None)
+    except OSError:
+        return None

@@ -202,10 +202,10 @@ def cmd_engines(args: argparse.Namespace) -> int:
     for engine in engines.all_engines():
         engine.prune()
         source = engine.source()
-        status = {"managed": green("installed"), "system": green("found on PATH")}.get(
+        status = {"managed": green("installed"), "system": green("found on this PC")}.get(
             source or "", f"not installed (~{engine.size_mb} MB download)"
         )
-        print(f"{engine.id:<8} {engine.name:<10} {status}")
+        print(f"{engine.id:<12} {engine.name:<13} {status}")
     return 0
 
 

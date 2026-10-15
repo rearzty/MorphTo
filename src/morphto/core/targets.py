@@ -48,10 +48,15 @@ _DEFAULT_ORDER: dict[Category, list[str]] = {
     Category.IMAGE: ["png", "jpg", "webp", "pdf", "preset:web", "ico", "avif", "gif", "preset:small_jpg"],
     Category.VIDEO: ["mp4", "gif", "mp3", "preset:discord", "webm", "mkv", "mov", "m4a", "wav"],
     Category.AUDIO: ["mp3", "wav", "flac", "m4a", "ogg", "opus", "preset:small_mp3"],
-    Category.DOCUMENT: [],
+    Category.DOCUMENT: ["pdf", "docx", "png", "jpg", "odt", "txt"],
+    Category.SPREADSHEET: ["pdf", "xlsx", "csv", "png", "ods"],
+    Category.PRESENTATION: ["pdf", "png", "jpg", "pptx", "odp"],
 }
 # What people usually want from a specific source format (goes before the category defaults).
 _FORMAT_ORDER: dict[str, list[str]] = {
+    "pdf": ["png", "jpg", "txt"],
+    "txt": ["pdf", "docx"],
+    "csv": ["xlsx"],
     "heic": ["jpg", "png"],
     "avif": ["png", "jpg"],
     "webp": ["png", "jpg", "gif"],

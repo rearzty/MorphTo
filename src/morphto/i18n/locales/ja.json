@@ -3,6 +3,7 @@
   "popup.clipboard_hint": "クリップボード：{what} — Ctrl+V を押してください",
   "popup.clipboard_image": "画像 {w}×{h}",
   "popup.files": "ファイル：{count}",
+  "popup.pages": "ページ数: {count}",
   "popup.search": "変換先…",
   "popup.no_targets": "利用できる変換はありません",
   "popup.unsupported": "サポートされていないファイル：{name}",

@@ -3,6 +3,7 @@
   "popup.clipboard_hint": "У буфері: {what} — натисніть Ctrl+V",
   "popup.clipboard_image": "зображення {w}×{h}",
   "popup.files": "Файлів: {count}",
+  "popup.pages": "Сторінок: {count}",
   "popup.search": "Конвертувати в…",
   "popup.no_targets": "Немає доступних перетворень",
   "popup.unsupported": "Непідтримуваний файл: {name}",

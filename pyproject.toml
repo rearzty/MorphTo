@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "morphto"
-version = "0.1.0"
+version = "0.2.0"
 description = "Fast, offline file converter for Windows: press a hotkey, paste, pick a format, done."
 readme = "README.md"
 license = "GPL-3.0-or-later"
@@ -25,6 +25,7 @@ classifiers = [
 dependencies = [
     "pillow>=11.3",
     "pi-heif>=1.0",
+    "pypdfium2>=4.30",
     "PySide6-Essentials>=6.8",
 ]
 
