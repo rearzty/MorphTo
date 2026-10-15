@@ -64,6 +64,7 @@ def test_engine_prune_keeps_only_tools(isolated_home):
     assert sorted(p.name for p in engine.install_dir.iterdir()) == ["ffmpeg.exe"]
 
 
+@windows_only
 def test_engine_prefers_small_7z_download():
     from morphto import engines
 
@@ -118,10 +119,13 @@ def test_display_hotkey_matches_the_platform():
 
 
 @unix_only
-def test_unix_ipc_round_trip(tmp_path, monkeypatch):
+def test_unix_ipc_round_trip(monkeypatch):
+    import tempfile
+
     from morphto.platform import unix
 
-    monkeypatch.setenv("XDG_RUNTIME_DIR", str(tmp_path))
+    short = tempfile.mkdtemp(dir="/tmp")  # socket paths are limited to ~104 bytes on macOS
+    monkeypatch.setenv("XDG_RUNTIME_DIR", short)
     received = []
     server = unix.PipeServer("morphto-test", received.append)
     server.start()

@@ -16,7 +16,7 @@ class Fake(Converter):
         return self._pairs
 
     def convert(self, src: Path, dst: Path, src_fmt: Format, dst_fmt: Format, options: Options, ctx: Context):
-        dst.write_text(f"{src.read_text()}>{dst_fmt.id}")
+        dst.write_bytes(src.read_bytes() + f">{dst_fmt.id}".encode())
 
 
 def test_find_path_prefers_cheapest_chain():
@@ -50,7 +50,7 @@ def test_multi_step_conversion(tmp_path):
     progress = []
     out = convert(src, "webp", registry=reg, progress=progress.append)
     assert out == tmp_path / "x.webp"
-    assert out.read_text().endswith(">jpg>webp")
+    assert out.read_bytes().endswith(b">jpg>webp")
     assert progress[-1] == 1.0
     assert progress == sorted(progress)
 

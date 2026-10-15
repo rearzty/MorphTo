@@ -1,5 +1,6 @@
 import gzip
 import tarfile
+import unicodedata
 import zipfile
 
 import pytest
@@ -31,7 +32,12 @@ def zip_file(tmp_path, tree):
 
 
 def _listing(folder):
-    return sorted(p.relative_to(folder).as_posix() for p in folder.rglob("*") if p.is_file())
+    # NFC: macOS file systems may hand back "й" decomposed
+    return sorted(
+        unicodedata.normalize("NFC", p.relative_to(folder).as_posix())
+        for p in folder.rglob("*")
+        if p.is_file()
+    )
 
 
 def test_unpack_zip_into_a_folder(tmp_path, zip_file):
