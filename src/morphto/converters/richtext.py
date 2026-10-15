@@ -1506,14 +1506,48 @@ def html_to_pdf(html_file: Path, dst: Path, ctx: Context) -> None:
     with tempfile.TemporaryDirectory(prefix="morphto-edge-") as profile:
         cmd = [
             str(edge), "--headless=new", "--disable-gpu", "--no-first-run", "--no-default-browser-check",
-            "--disable-extensions", "--disable-sync", "--no-pdf-header-footer", f"--user-data-dir={profile}",
+            "--disable-extensions", "--disable-sync", "--disable-background-networking",
+            "--use-mock-keychain", "--password-store=basic",  # macOS / Linux: never ask for a keychain
+            "--no-pdf-header-footer", f"--user-data-dir={profile}",
             f"--print-to-pdf={dst}", html_file.resolve().as_uri(),
         ]  # fmt: skip
-        from morphto.converters.office import _run
-
-        _run(cmd, ctx)
+        _print_with_browser(cmd, dst, ctx)
     if not dst.is_file() or dst.stat().st_size == 0:
         raise ConversionError("The browser could not create the PDF")
+
+
+def _print_with_browser(cmd: list[str], dst: Path, ctx: Context, timeout: float = 120) -> None:
+    """Run the headless browser until the PDF is written. Chrome on macOS can stay alive after printing,
+    so we stop it ourselves once the file has stopped growing."""
+    import time
+
+    proc = subprocess.Popen(
+        cmd, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, creationflags=_NO_WINDOW
+    )
+    started = time.monotonic()
+    last_size, stable_since = -1, 0.0
+    try:
+        while proc.poll() is None:
+            ctx.check_cancelled()
+            now = time.monotonic()
+            if now - started > timeout:
+                raise ConversionError(f"The browser did not finish the PDF in {int(timeout)} s")
+            size = dst.stat().st_size if dst.is_file() else -1
+            if size > 0 and size == last_size:
+                if now - stable_since > 1.0:
+                    break  # written and not growing: done
+            else:
+                last_size, stable_since = size, now
+            ctx.progress(min(0.9, 0.4 + (now - started) / 20))
+            time.sleep(0.2)
+    finally:
+        if proc.poll() is None:
+            proc.terminate()
+            try:
+                proc.wait(5)
+            except subprocess.TimeoutExpired:
+                proc.kill()
+                proc.wait()
 
 
 def write_pdf(doc: Document, dst: Path, title: str, ctx: Context) -> None:
