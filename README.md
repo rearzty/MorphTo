@@ -7,7 +7,7 @@
 **Press a hotkey, paste, pick a format. Done.**
 
 A fast, lightweight file converter for Windows that lives in the tray.
-Images, audio, video, documents and presentations, fully offline.
+Images, audio, video, documents, e-books, data and archives, fully offline.
 
 [**⬇ Download for Windows**](https://github.com/rearzty/MorphTo/releases/latest/download/MorphTo-setup.exe)
 &nbsp;·&nbsp; [Portable zip](https://github.com/rearzty/MorphTo/releases/latest)
@@ -59,17 +59,21 @@ You can also drag it straight out of the popup.
 
 | Category | Read | Write |
 |---|---|---|
-| Images | PNG, JPEG, WebP, AVIF, HEIC/HEIF, GIF (animated), BMP, TIFF, ICO, ICNS, TGA, JPEG 2000, PSD | all of these except PSD, plus PDF |
-| Audio | MP3, WAV, FLAC, OGG, Opus, M4A, AAC, WMA, AIFF | the same |
+| Images | PNG, JPEG, WebP, AVIF, HEIC/HEIF, GIF (animated), BMP, TIFF, ICO, ICNS, TGA, JPEG 2000, PSD, JPEG XL, SVG, camera RAW (DNG, CR2, CR3, NEF, ARW, ORF, RW2, RAF…) | all of these except PSD, SVG and RAW, plus PDF |
+| Audio | MP3, WAV, FLAC, OGG, Opus, M4A, AAC, WMA, AIFF | the same, plus iPhone ringtone (M4R, first 40 s) |
 | Video | MP4, MKV, WebM, MOV, AVI, WMV, FLV, MPEG, TS, 3GP, OGV, GIF | MP4, MKV, WebM, MOV, AVI, WMV, FLV, GIF, and any audio format |
-| Documents | DOCX, DOC, ODT, RTF, TXT, PDF | PDF, DOCX, DOC, ODT, RTF, TXT; pages as PNG, JPEG, WebP, TIFF |
+| Documents | DOCX, DOC, ODT, RTF, TXT, Markdown, HTML, PDF | PDF, DOCX, DOC, ODT, RTF, TXT, Markdown, HTML; pages as PNG, JPEG, WebP, TIFF |
+| E-books | EPUB, FB2 | EPUB, FB2, PDF, DOCX, Markdown, HTML, TXT (and EPUB/FB2 from Word, Markdown, HTML, TXT and text PDFs) |
+| Data | CSV, XLSX, JSON, YAML, XML | each of them, both ways |
+| Archives | ZIP, 7Z, TAR, TAR.GZ, RAR | unpack into a folder, or repack as ZIP, 7Z, TAR, TAR.GZ |
 | Spreadsheets | XLSX, XLS, ODS, CSV | PDF, XLSX, XLS, ODS, CSV; pages as images |
 | Presentations | PPTX, PPT, ODP | PDF, PPTX, PPT, ODP; slides as images |
 
 A PDF (or a document, a spreadsheet, slides) with several pages turns into a folder of images,
 `page-01.png`, `page-02.png`…, or into one multi-page TIFF. PDF to TXT extracts the text.
 
-More categories (archives, fonts, ebooks) are planned.
+Markdown, HTML, e-books, data and archives are handled by MorphTo's own code, without extra downloads.
+PDFs made from Markdown, HTML and e-books are printed by Microsoft Edge, which comes with Windows.
 
 ### Optional components
 
@@ -81,6 +85,9 @@ then downloads, verifies the checksum and continues the conversion.
 | FFmpeg (www.gyan.dev build) | audio and video | ~34 MB |
 | HEIC encoder (pillow-heif from PyPI) | saving *to* HEIC (reading HEIC works out of the box) | ~7 MB |
 | LibreOffice (libreoffice.org) | Word, Excel, PowerPoint and OpenDocument files | ~360 MB, or none if it is already installed |
+| SVG renderer (resvg) | SVG | ~2 MB |
+| RAW decoder (LibRaw) | camera RAW photos | ~4 MB |
+| JPEG XL codec (pillow-jxl-plugin from PyPI) | JPEG XL | ~5 MB |
 
 PDF files need nothing extra. If Microsoft Office is installed, MorphTo uses it for Word, Excel and PowerPoint
 to PDF (the layout is exactly as in Office), so LibreOffice is only needed for the other conversions.
@@ -124,7 +131,8 @@ morphto engines                                   # optional components
 Everything happens on your computer. MorphTo has no accounts and no telemetry. It goes online only to:
 
 - download an optional component when you agree to it (from `www.gyan.dev` for FFmpeg, `pypi.org`
-  for the HEIC encoder and `download.documentfoundation.org` for LibreOffice);
+  for the HEIC and JPEG XL codecs, `download.documentfoundation.org` for LibreOffice, `github.com` for the SVG
+  renderer and `www.libraw.org` for the RAW decoder);
 - check for a new version: one request to the GitHub API at start and once a day, with nothing about you or
   your files in it. Turn it off in Settings.
 

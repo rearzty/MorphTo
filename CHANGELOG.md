@@ -2,7 +2,7 @@
 
 ## [0.2.0] - 2026-10-15
 
-Documents, spreadsheets and presentations.
+Documents, presentations, e-books, data, archives and update notifications.
 
 ### Added
 - PDF to PNG, JPEG, WebP, BMP or TIFF, built in (PDFium). Several pages give a folder of images
@@ -13,9 +13,21 @@ Documents, spreadsheets and presentations.
   MorphTo's folder, nothing installed into Windows). With Microsoft Office installed, Word / Excel / PowerPoint to
   PDF goes through Office and needs no download.
 - Office files are recognised by their content, not only by the extension.
+- Markdown, HTML, FB2, EPUB and TXT convert into each other and to DOCX and PDF (printed by the Microsoft
+  Edge that comes with Windows). Word documents also become EPUB, FB2 and Markdown.
+- Data: CSV, XLSX, JSON, YAML and XML convert into each other, without LibreOffice.
+- Archives: ZIP, 7Z, TAR, TAR.GZ and RAR unpack into a folder or repack into another format.
+- SVG, camera RAW and JPEG XL, with small components downloaded on first use (2–5 MB each).
+- iPhone ringtone (M4R, the first 40 seconds).
 - Update notifications: MorphTo checks GitHub for a new version at start and once a day (can be turned off in
   Settings). An “Update” button in the popup and the tray menu downloads the installer, verifies it and
   updates in place; the portable version opens the download page.
+- The installer says when it updates an existing version and skips the license page then.
+
+### Fixed
+- Pasting a clipboard image that MorphTo announced but could not read: more image formats are read, and a
+  message explains when it still fails.
+- Ctrl+V and Ctrl+O in the popup work on any keyboard layout (e.g. Russian).
 
 ## [0.1.0] - 2026-10-12
 

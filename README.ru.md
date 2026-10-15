@@ -7,7 +7,7 @@
 **Нажал сочетание, вставил, выбрал формат. Готово.**
 
 Быстрый и лёгкий конвертер файлов для Windows, который живёт в трее.
-Картинки, аудио, видео, документы и презентации, полностью офлайн.
+Картинки, аудио, видео, документы, книги, данные и архивы — полностью офлайн.
 
 [**⬇ Скачать для Windows**](https://github.com/rearzty/MorphTo/releases/latest/download/MorphTo-setup.exe)
 &nbsp;·&nbsp; [Portable-архив](https://github.com/rearzty/MorphTo/releases/latest)
@@ -59,17 +59,21 @@ Windows 10 (1809+) и 11 · 64 бита · ~22 МБ · бесплатно и с 
 
 | Категория | Чтение | Запись |
 |---|---|---|
-| Изображения | PNG, JPEG, WebP, AVIF, HEIC/HEIF, GIF (анимированный), BMP, TIFF, ICO, ICNS, TGA, JPEG 2000, PSD | все, кроме PSD, плюс PDF |
-| Аудио | MP3, WAV, FLAC, OGG, Opus, M4A, AAC, WMA, AIFF | те же |
+| Изображения | PNG, JPEG, WebP, AVIF, HEIC/HEIF, GIF (анимированный), BMP, TIFF, ICO, ICNS, TGA, JPEG 2000, PSD, JPEG XL, SVG, RAW с фотоаппаратов (DNG, CR2, CR3, NEF, ARW, ORF, RW2, RAF…) | все, кроме PSD, SVG и RAW, плюс PDF |
+| Аудио | MP3, WAV, FLAC, OGG, Opus, M4A, AAC, WMA, AIFF | те же плюс рингтон для iPhone (M4R, первые 40 с) |
 | Видео | MP4, MKV, WebM, MOV, AVI, WMV, FLV, MPEG, TS, 3GP, OGV, GIF | MP4, MKV, WebM, MOV, AVI, WMV, FLV, GIF и любой аудиоформат |
-| Документы | DOCX, DOC, ODT, RTF, TXT, PDF | PDF, DOCX, DOC, ODT, RTF, TXT; страницы в PNG, JPEG, WebP, TIFF |
+| Документы | DOCX, DOC, ODT, RTF, TXT, Markdown, HTML, PDF | PDF, DOCX, DOC, ODT, RTF, TXT, Markdown, HTML; страницы в PNG, JPEG, WebP, TIFF |
+| Книги | EPUB, FB2 | EPUB, FB2, PDF, DOCX, Markdown, HTML, TXT (а также EPUB/FB2 из Word, Markdown, HTML, TXT и текстовых PDF) |
+| Данные | CSV, XLSX, JSON, YAML, XML | любой в любой |
+| Архивы | ZIP, 7Z, TAR, TAR.GZ, RAR | распаковать в папку или перепаковать в ZIP, 7Z, TAR, TAR.GZ |
 | Таблицы | XLSX, XLS, ODS, CSV | PDF, XLSX, XLS, ODS, CSV; страницы картинками |
 | Презентации | PPTX, PPT, ODP | PDF, PPTX, PPT, ODP; слайды картинками |
 
 Многостраничный PDF (или документ, таблица, презентация) превращается в папку с картинками
 `page-01.png`, `page-02.png`… или в один многостраничный TIFF. PDF в TXT извлекает текст.
 
-В планах: архивы, шрифты, электронные книги.
+Markdown, HTML, книги, данные и архивы MorphTo обрабатывает своим кодом, без загрузок. PDF из Markdown,
+HTML и книг печатает Microsoft Edge, который есть в Windows.
 
 ### Дополнительные компоненты
 
@@ -81,6 +85,9 @@ MorphTo сначала спрашивает, затем скачивает, пр
 | FFmpeg (сборка www.gyan.dev) | аудио и видео | ~34 МБ |
 | Кодировщик HEIC (pillow-heif с PyPI) | сохранение *в* HEIC (чтение HEIC работает сразу) | ~7 МБ |
 | LibreOffice (libreoffice.org) | файлы Word, Excel, PowerPoint и OpenDocument | ~360 МБ или ничего, если он уже установлен |
+| Отрисовщик SVG (resvg) | SVG | ~2 МБ |
+| Декодер RAW (LibRaw) | RAW-снимки с фотоаппаратов | ~4 МБ |
+| Кодек JPEG XL (pillow-jxl-plugin с PyPI) | JPEG XL | ~5 МБ |
 
 Для PDF ничего докачивать не нужно. Если установлен Microsoft Office, MorphTo использует его для перевода
 Word, Excel и PowerPoint в PDF (вёрстка точно как в Office), а LibreOffice нужен только для остальных
@@ -124,7 +131,8 @@ morphto engines                                   # дополнительные
 Всё происходит на вашем компьютере. Никаких аккаунтов и телеметрии. В интернет MorphTo выходит только чтобы:
 
 - скачать дополнительный компонент, когда вы на это согласились (`www.gyan.dev` для FFmpeg, `pypi.org`
-  для кодировщика HEIC и `download.documentfoundation.org` для LibreOffice);
+  для кодеков HEIC и JPEG XL, `download.documentfoundation.org` для LibreOffice, `github.com` для отрисовщика
+  SVG и `www.libraw.org` для декодера RAW);
 - проверить, нет ли новой версии: один запрос к GitHub API при запуске и раз в день, без каких-либо данных
   о вас или ваших файлах. Отключается в настройках.
 
