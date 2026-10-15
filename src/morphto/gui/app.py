@@ -6,11 +6,11 @@ import sys
 import threading
 from pathlib import Path
 
-from PySide6.QtCore import QObject, QThreadPool, QTimer, Signal
-from PySide6.QtGui import QAction
+from PySide6.QtCore import QObject, QThreadPool, QTimer, QUrl, Signal
+from PySide6.QtGui import QAction, QDesktopServices
 from PySide6.QtWidgets import QApplication, QDialog, QMenu, QSystemTrayIcon
 
-from morphto import APP_NAME, engines
+from morphto import APP_NAME, __version__, engines, updates
 from morphto.core.formats import all_formats
 from morphto.core.registry import default_registry
 from morphto.gui import theme
@@ -18,11 +18,14 @@ from morphto.gui.busy import BusyIndicator
 from morphto.gui.icon import app_icon
 from morphto.gui.ipc import SERVER_NAME, decode
 from morphto.gui.popup import Popup
+from morphto.gui.workers import UpdateCheckTask, UpdateDownloadTask
 from morphto.i18n import set_language, tr
 from morphto.platform import pipe, windows
 from morphto.settings import DEFAULT_HOTKEY, Settings
 
 MERGE_MS = 250  # Explorer starts one process per selected file; merge them into one popup
+UPDATE_FIRST_CHECK_MS = 20_000  # after start: let the first popup have the machine to itself
+UPDATE_INTERVAL_MS = 24 * 3600 * 1000
 APP_ID = "rearzty.MorphTo"
 
 
@@ -41,6 +44,11 @@ class Controller(QObject):
         app.setWindowIcon(self.icon)
         theme.apply_accent(app)
 
+        self.update: updates.Release | None = None  # a newer version found on GitHub
+        self._update_check: UpdateCheckTask | None = None
+        self._update_download: UpdateDownloadTask | None = None
+        self._manual_check = False
+        self._message_is_update = False
         self.popup = Popup(self)
         self.hotkey: windows.HotkeyListener | None = None
         self.hotkey_pressed.connect(self.popup.toggle)
@@ -48,6 +56,7 @@ class Controller(QObject):
 
         self.tray = QSystemTrayIcon(self.icon, self)
         self.tray.activated.connect(self._tray_activated)
+        self.tray.messageClicked.connect(self._on_message_clicked)
         self._build_tray_menu()
         self.tray.show()
         self.busy = BusyIndicator(self)
@@ -69,6 +78,11 @@ class Controller(QObject):
         if self.settings.context_menu:
             self._apply_context_menu(True)  # refresh the command path in case the app moved
 
+        self._update_timer = QTimer(self)
+        self._update_timer.setSingleShot(True)
+        self._update_timer.timeout.connect(self._scheduled_update_check)
+        self._update_timer.start(UPDATE_FIRST_CHECK_MS)
+
     # ---- tray ----
 
     def _build_tray_menu(self) -> None:
@@ -78,10 +92,17 @@ class Controller(QObject):
         open_action.triggered.connect(self._open_popup)
         settings_action = QAction(tr("tray.settings"), menu)
         settings_action.triggered.connect(self.open_settings)
+        if self.update is not None:
+            update_action = QAction("↑ " + tr("update.button", version=self.update.version), menu)
+            update_action.triggered.connect(self.start_update)
+        else:
+            update_action = QAction(tr("tray.check_updates"), menu)
+            update_action.triggered.connect(self.check_updates_now)
         quit_action = QAction(tr("tray.quit"), menu)
         quit_action.triggered.connect(self.quit)
         menu.addAction(open_action)
         menu.addAction(settings_action)
+        menu.addAction(update_action)
         menu.addSeparator()
         menu.addAction(quit_action)
         self._menu = menu
@@ -113,7 +134,84 @@ class Controller(QObject):
 
     def notify(self, title: str, message: str, error: bool = False) -> None:
         icon = QSystemTrayIcon.MessageIcon.Warning if error else QSystemTrayIcon.MessageIcon.Information
+        self._message_is_update = False
         self.tray.showMessage(title, message, icon, 4000)
+
+    def _on_message_clicked(self) -> None:
+        if self._message_is_update:
+            self.popup.summon(keep=True)
+
+    # ---- updates ----
+
+    def _scheduled_update_check(self) -> None:
+        self._update_timer.start(UPDATE_INTERVAL_MS)
+        if self.settings.check_updates:
+            self._start_update_check()
+
+    def check_updates_now(self) -> None:
+        self._manual_check = True
+        self._start_update_check()
+
+    def _start_update_check(self) -> None:
+        if self._update_check is not None or self._update_download is not None:
+            return
+        self._update_check = UpdateCheckTask()
+        self._update_check.signals.finished.connect(self._on_update_checked)
+        QThreadPool.globalInstance().start(self._update_check)
+
+    def _on_update_checked(self, release, error: str) -> None:
+        self._update_check = None
+        manual, self._manual_check = self._manual_check, False
+        if release is None:
+            if manual and error:
+                self.notify(APP_NAME, tr("update.check_failed", error=error[:150]), error=True)
+            elif manual:
+                self.notify(APP_NAME, tr("update.latest", version=__version__))
+            return
+        self.update = release
+        self.popup.show_update(release.version)
+        self._build_tray_menu()
+        if manual or self.settings.update_notified != release.version:
+            self.settings.update_notified = release.version
+            self.save_settings()
+            self.notify(tr("update.available", version=release.version), tr("update.available_hint"))
+            self._message_is_update = True
+
+    def start_update(self) -> None:
+        """Download and run the new installer; the portable version gets the release page instead."""
+        if self.update is None or self._update_download is not None:
+            return
+        if not updates.can_self_update():
+            QDesktopServices.openUrl(QUrl(self.update.page_url))
+            return
+        self.popup.summon(keep=True)
+        if self.popup.busy():
+            return  # finish (or cancel) the current conversion first
+        self._update_download = UpdateDownloadTask(self.update)
+        self._update_download.signals.progress.connect(self.popup.update_progress)
+        self._update_download.signals.finished.connect(self._on_update_downloaded)
+        self.popup.update_progress(0.0)
+        QThreadPool.globalInstance().start(self._update_download)
+
+    def update_running(self) -> bool:
+        return self._update_download is not None
+
+    def cancel_update(self) -> None:
+        if self._update_download is not None:
+            self._update_download.cancel.set()
+
+    def _on_update_downloaded(self, installer: str, error: str) -> None:
+        cancelled = self._update_download is not None and self._update_download.cancel.is_set()
+        self._update_download = None
+        if error:
+            self.popup.update_failed("" if cancelled else error)
+            return
+        try:
+            updates.run_installer(Path(installer))
+        except OSError as exc:
+            self.popup.update_failed(str(exc))
+            return
+        self.quit()  # the installer replaces our files and starts the new version
 
     # ---- hotkey ----
 
@@ -209,6 +307,8 @@ class Controller(QObject):
         self._quitting = True
         if self.hotkey is not None:
             self.hotkey.stop()
+        self._update_timer.stop()
+        self.cancel_update()
         self.popup.cancel()
         QThreadPool.globalInstance().waitForDone(5000)  # let cancelled jobs clean up their temp files
         self.busy.reset()

@@ -121,9 +121,16 @@ morphto engines                                   # optional components
 
 ## Privacy
 
-Everything happens on your computer. MorphTo has no accounts, no telemetry and no update pings. It goes online
-only to download an optional component when you agree to it (from `www.gyan.dev` for FFmpeg, `pypi.org`
-for the HEIC encoder and `download.documentfoundation.org` for LibreOffice).
+Everything happens on your computer. MorphTo has no accounts and no telemetry. It goes online only to:
+
+- download an optional component when you agree to it (from `www.gyan.dev` for FFmpeg, `pypi.org`
+  for the HEIC encoder and `download.documentfoundation.org` for LibreOffice);
+- check for a new version: one request to the GitHub API at start and once a day, with nothing about you or
+  your files in it. Turn it off in Settings.
+
+When a new version is out, an “Update” button appears in the popup and in the tray menu. It downloads the
+installer from GitHub Releases, verifies its checksum and updates MorphTo in place, keeping your settings.
+The portable version opens the download page instead.
 
 ## FAQ
 

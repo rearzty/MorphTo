@@ -8,7 +8,7 @@ from pathlib import Path
 
 from PySide6.QtCore import QObject, QRunnable, Signal
 
-from morphto import engines
+from morphto import engines, updates
 from morphto.core import ConversionError, convert
 from morphto.core.registry import CancelledError
 from morphto.core.targets import Target
@@ -84,3 +84,42 @@ class InstallTask(QRunnable):
             self.signals.finished.emit(str(exc) or exc.__class__.__name__)
             return
         self.signals.finished.emit("")
+
+
+class UpdateCheckSignals(QObject):
+    finished = Signal(object, str)  # updates.Release or None, error message ("" = checked fine)
+
+
+class UpdateCheckTask(QRunnable):
+    def __init__(self) -> None:
+        super().__init__()
+        self.signals = UpdateCheckSignals()
+
+    def run(self) -> None:
+        try:
+            release = updates.check()
+        except Exception as exc:  # offline, rate-limited, GitHub down: try again next time
+            self.signals.finished.emit(None, str(exc) or exc.__class__.__name__)
+            return
+        self.signals.finished.emit(release, "")
+
+
+class UpdateDownloadSignals(QObject):
+    progress = Signal(float)
+    finished = Signal(str, str)  # installer path, error message ("" = success)
+
+
+class UpdateDownloadTask(QRunnable):
+    def __init__(self, release: updates.Release) -> None:
+        super().__init__()
+        self.release = release
+        self.cancel = threading.Event()
+        self.signals = UpdateDownloadSignals()
+
+    def run(self) -> None:
+        try:
+            path = updates.download_installer(self.release, self.signals.progress.emit, self.cancel)
+        except Exception as exc:
+            self.signals.finished.emit("", str(exc) or exc.__class__.__name__)
+            return
+        self.signals.finished.emit(str(path), "")

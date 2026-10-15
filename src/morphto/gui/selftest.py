@@ -107,7 +107,7 @@ def run(file: str, target: str = "jpg") -> int:
         os.environ["MORPHTO_FFMPEG"] = str(ffmpeg)
     home = tempfile.mkdtemp(prefix="morphto-selftest-")
     os.environ["MORPHTO_HOME"] = home
-    settings = {"output_mode": "folder", "output_dir": str(Path(home) / "out")}
+    settings = {"output_mode": "folder", "output_dir": str(Path(home) / "out"), "check_updates": False}
     (Path(home) / "settings.json").write_text(json.dumps(settings), encoding="utf-8")
 
     from PySide6.QtWidgets import QApplication

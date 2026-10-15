@@ -58,13 +58,13 @@ Name: "japanese"; MessagesFile: "compiler:Languages\Japanese.isl"
 [CustomMessages]
 AddToPath=Add the "morphto" command to PATH (for the command line)
 Autostart=Start MorphTo with Windows (recommended: the hotkey works right away)
-RemoveData=Also delete MorphTo settings and downloaded components (FFmpeg, HEIC encoder)?
+RemoveData=Also delete MorphTo settings and downloaded components (FFmpeg, HEIC encoder, LibreOffice)?
 russian.AddToPath=Добавить команду "morphto" в PATH (для командной строки)
 russian.Autostart=Запускать MorphTo вместе с Windows (рекомендуется: сочетание клавиш работает сразу)
-russian.RemoveData=Удалить также настройки MorphTo и загруженные компоненты (FFmpeg, кодировщик HEIC)?
+russian.RemoveData=Удалить также настройки MorphTo и загруженные компоненты (FFmpeg, кодировщик HEIC, LibreOffice)?
 ukrainian.AddToPath=Додати команду "morphto" до PATH (для командного рядка)
 ukrainian.Autostart=Запускати MorphTo разом з Windows (рекомендовано: сполучення клавіш працює одразу)
-ukrainian.RemoveData=Видалити також налаштування MorphTo та завантажені компоненти (FFmpeg, кодувальник HEIC)?
+ukrainian.RemoveData=Видалити також налаштування MorphTo та завантажені компоненти (FFmpeg, кодувальник HEIC, LibreOffice)?
 
 [Tasks]
 Name: "autostart"; Description: "{cm:Autostart}"
@@ -84,6 +84,8 @@ Name: "{autodesktop}\{#AppName}"; Filename: "{app}\{#AppExe}"; Tasks: desktopico
 
 [Run]
 Filename: "{app}\{#AppExe}"; Description: "{cm:LaunchProgram,{#AppName}}"; Flags: nowait postinstall skipifsilent
+; Started by the app's "Update" button (/SILENT /update=1): bring MorphTo back when done.
+Filename: "{app}\{#AppExe}"; Parameters: "--background"; Flags: nowait; Check: IsAppUpdate
 
 [UninstallRun]
 ; Remove autostart and the Explorer menu entries the app created.
@@ -92,6 +94,11 @@ Filename: "{app}\{#AppExe}"; Parameters: "--cleanup"; Flags: runhidden waituntil
 [Code]
 const
   EnvKey = 'Environment';
+
+function IsAppUpdate: Boolean;
+begin
+  Result := WizardSilent and (ExpandConstant('{param:update|0}') = '1');
+end;
 
 function PathContains(Paths, Dir: string): Boolean;
 begin

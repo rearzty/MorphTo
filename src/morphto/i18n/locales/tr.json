@@ -77,5 +77,14 @@
   "welcome.change_hotkey": "Kısayolu değiştir",
   "welcome.start": "Başla",
   "settings.effects": "Yarı saydam pencere (Windows 11 stili)",
-  "engine.name.heif": "HEIC kodlayıcı"
+  "engine.name.heif": "HEIC kodlayıcı",
+  "update.button": "{version} sürümüne güncelle",
+  "update.available": "MorphTo {version} yayınlandı",
+  "update.available_hint": "MorphTo'yu açın ve “Güncelle”ye tıklayın.",
+  "update.downloading": "Güncelleme indiriliyor… %{percent}",
+  "update.failed": "Güncellenemedi: {error}",
+  "update.latest": "En son sürümü kullanıyorsunuz ({version}).",
+  "update.check_failed": "Güncellemeler denetlenemedi: {error}",
+  "tray.check_updates": "Güncellemeleri denetle",
+  "settings.check_updates": "Yeni sürümleri denetle (günde bir kez, GitHub'da)"
 }

@@ -132,6 +132,11 @@ def stylesheet(p: Palette, glass: bool = False, square: bool = False) -> str:
     QPushButton:hover {{ background: {p.surface_hover}; }}
     QPushButton#primary {{ background: {p.accent}; border-color: {p.accent}; color: white; font-weight: 600; }}
     QPushButton#primary:hover {{ background: {p.accent_hover}; }}
+    QPushButton#update {{
+        background: {p.selection}; border: none; border-radius: 10px; padding: 2px 10px;
+        color: {p.accent}; font-weight: 600;
+    }}
+    QPushButton#update:hover {{ background: {p.accent}; color: white; }}
     QProgressBar {{ background: {p.surface}; border: none; border-radius: 3px; max-height: 6px; }}
     QProgressBar::chunk {{ background: {p.accent}; border-radius: 3px; }}
     QScrollBar:vertical {{ background: transparent; width: 8px; margin: 2px; }}

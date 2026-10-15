@@ -23,6 +23,8 @@ class Settings:
     context_menu: bool = False
     popup_pos: list[int] | None = None  # where the user dragged the popup; None = centered
     effects: bool = True  # Windows 11 acrylic backdrop for the popup
+    check_updates: bool = True  # ask GitHub for a newer release at start and once a day
+    update_notified: str = ""  # last version announced with a notification (announce each one once)
     # source format id -> {target id -> times used}; drives smart suggestions
     history: dict[str, dict[str, int]] = field(default_factory=dict)
 

@@ -110,7 +110,8 @@ class SettingsDialog(QDialog):
         self.context_menu = QCheckBox(tr("settings.context_menu"), checked=settings.context_menu)
         self.effects = QCheckBox(tr("settings.effects"), checked=settings.effects)
         self.effects.setVisible(effects.backdrop_supported())
-        for cb in (self.copy, self.autostart, self.context_menu, self.effects):
+        self.check_updates = QCheckBox(tr("settings.check_updates"), checked=settings.check_updates)
+        for cb in (self.copy, self.autostart, self.context_menu, self.effects, self.check_updates):
             bl.addWidget(cb)
         lay.addWidget(behaviour)
 
@@ -227,4 +228,5 @@ class SettingsDialog(QDialog):
             autostart=self.autostart.isChecked(),
             context_menu=self.context_menu.isChecked(),
             effects=self.effects.isChecked(),
+            check_updates=self.check_updates.isChecked(),
         )

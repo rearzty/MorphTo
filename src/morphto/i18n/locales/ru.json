@@ -77,5 +77,14 @@
   "welcome.change_hotkey": "Изменить сочетание",
   "welcome.start": "Начать",
   "settings.effects": "Полупрозрачное окно (стиль Windows 11)",
-  "engine.name.heif": "кодировщик HEIC"
+  "engine.name.heif": "кодировщик HEIC",
+  "update.button": "Обновить до {version}",
+  "update.available": "Доступна MorphTo {version}",
+  "update.available_hint": "Откройте MorphTo и нажмите «Обновить».",
+  "update.downloading": "Загрузка обновления… {percent}%",
+  "update.failed": "Не удалось обновить: {error}",
+  "update.latest": "У вас последняя версия ({version}).",
+  "update.check_failed": "Не удалось проверить обновления: {error}",
+  "tray.check_updates": "Проверить обновления",
+  "settings.check_updates": "Проверять новые версии (раз в день, на GitHub)"
 }

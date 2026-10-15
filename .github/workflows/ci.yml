@@ -54,6 +54,13 @@ jobs:
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
           dist\MorphTo\MorphTo.exe --self-test sample.pdf png | Out-Host
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+      - name: Build the installer (catches installer script errors before a release)
+        shell: pwsh
+        run: |
+          $iscc = "${env:ProgramFiles(x86)}\Inno Setup 6\ISCC.exe"
+          if (-not (Test-Path $iscc)) { choco install innosetup -y --no-progress | Out-Host }
+          & $iscc /DAppVersion=0.0.0 packaging\installer.iss
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
       - uses: actions/upload-artifact@v4
         with:
           name: MorphTo-windows

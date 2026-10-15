@@ -77,5 +77,14 @@
   "welcome.change_hotkey": "단축키 변경",
   "welcome.start": "시작하기",
   "settings.effects": "반투명 창(Windows 11 스타일)",
-  "engine.name.heif": "HEIC 인코더"
+  "engine.name.heif": "HEIC 인코더",
+  "update.button": "{version}(으)로 업데이트",
+  "update.available": "MorphTo {version} 사용 가능",
+  "update.available_hint": "MorphTo를 열고 \"업데이트\"를 클릭하세요.",
+  "update.downloading": "업데이트 다운로드 중… {percent}%",
+  "update.failed": "업데이트하지 못했습니다: {error}",
+  "update.latest": "최신 버전입니다 ({version}).",
+  "update.check_failed": "업데이트를 확인하지 못했습니다: {error}",
+  "tray.check_updates": "업데이트 확인",
+  "settings.check_updates": "새 버전 확인 (하루 한 번, GitHub)"
 }

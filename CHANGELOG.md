@@ -13,6 +13,9 @@ Documents, spreadsheets and presentations.
   MorphTo's folder, nothing installed into Windows). With Microsoft Office installed, Word / Excel / PowerPoint to
   PDF goes through Office and needs no download.
 - Office files are recognised by their content, not only by the extension.
+- Update notifications: MorphTo checks GitHub for a new version at start and once a day (can be turned off in
+  Settings). An “Update” button in the popup and the tray menu downloads the installer, verifies it and
+  updates in place; the portable version opens the download page.
 
 ## [0.1.0] - 2026-10-12
 

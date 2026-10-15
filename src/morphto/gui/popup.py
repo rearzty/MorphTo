@@ -436,6 +436,11 @@ class Popup(QWidget):
         title = QLabel("MorphTo", objectName="title")
         header.addWidget(title)
         header.addStretch()
+        self.update_btn = QPushButton(objectName="update")
+        self.update_btn.setCursor(Qt.CursorShape.PointingHandCursor)
+        self.update_btn.clicked.connect(self.controller.start_update)
+        self.update_btn.hide()
+        header.addWidget(self.update_btn)
         self.settings_btn = QToolButton(text="⚙")
         self.settings_btn.setFont(theme.ui_font(11))
         self.settings_btn.clicked.connect(self.controller.open_settings)
@@ -537,6 +542,8 @@ class Popup(QWidget):
         self.btn_secondary.clicked.connect(self._on_secondary)
         self.retranslate()
         self.reset()
+        if self.controller.update is not None:
+            self.show_update(self.controller.update.version)
 
     def target_at(self, row: int) -> Target | None:
         return self.shown[row] if 0 <= row < len(self.shown) else None
@@ -565,7 +572,7 @@ class Popup(QWidget):
     # ---- showing / hiding ----
 
     def busy(self) -> bool:
-        return self.task is not None or self.install_task is not None
+        return self.task is not None or self.install_task is not None or self.controller.update_running()
 
     def summon(self, files: list[str] | None = None, keep: bool = False) -> None:
         """Show the popup, optionally preloaded with files.
@@ -1043,6 +1050,27 @@ class Popup(QWidget):
             self.task.cancel.set()
         if self.install_task is not None:
             self.install_task.cancel.set()
+        self.controller.cancel_update()
+
+    # ---- app updates ----
+
+    def show_update(self, version: str) -> None:
+        self.update_btn.setText("↑ " + tr("update.button", version=version))
+        self.update_btn.setToolTip(tr("update.available", version=version))
+        self.update_btn.show()
+
+    def update_progress(self, fraction: float) -> None:
+        text = tr("update.downloading", percent=int(fraction * 100))
+        if self._mode != "installing":
+            self._set_status("installing", text)
+        self.status_label.setText(text)
+        self.progress.setValue(int(fraction * 1000))
+
+    def update_failed(self, error: str) -> None:
+        if error:
+            self._set_status("error", tr("update.failed", error=error[:200]))
+        else:
+            self._set_status("idle")
 
     # ---- engines ----
 

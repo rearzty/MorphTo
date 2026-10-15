@@ -77,5 +77,14 @@
   "welcome.change_hotkey": "Alterar atalho",
   "welcome.start": "Começar",
   "settings.effects": "Janela translúcida (estilo Windows 11)",
-  "engine.name.heif": "codificador HEIC"
+  "engine.name.heif": "codificador HEIC",
+  "update.button": "Atualizar para {version}",
+  "update.available": "MorphTo {version} está disponível",
+  "update.available_hint": "Abra o MorphTo e clique em “Atualizar”.",
+  "update.downloading": "Baixando a atualização… {percent}%",
+  "update.failed": "Não foi possível atualizar: {error}",
+  "update.latest": "Você tem a versão mais recente ({version}).",
+  "update.check_failed": "Não foi possível verificar atualizações: {error}",
+  "tray.check_updates": "Verificar atualizações",
+  "settings.check_updates": "Verificar novas versões (uma vez por dia, no GitHub)"
 }

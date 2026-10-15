@@ -77,5 +77,14 @@
   "welcome.change_hotkey": "更改快捷键",
   "welcome.start": "开始使用",
   "settings.effects": "半透明窗口（Windows 11 风格）",
-  "engine.name.heif": "HEIC 编码器"
+  "engine.name.heif": "HEIC 编码器",
+  "update.button": "更新到 {version}",
+  "update.available": "MorphTo {version} 已发布",
+  "update.available_hint": "打开 MorphTo 并点击“更新”。",
+  "update.downloading": "正在下载更新… {percent}%",
+  "update.failed": "更新失败：{error}",
+  "update.latest": "已是最新版本（{version}）。",
+  "update.check_failed": "无法检查更新：{error}",
+  "tray.check_updates": "检查更新",
+  "settings.check_updates": "检查新版本（每天一次，来自 GitHub）"
 }

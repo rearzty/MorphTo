@@ -77,5 +77,14 @@
   "welcome.change_hotkey": "ショートカットを変更",
   "welcome.start": "はじめる",
   "settings.effects": "半透明ウィンドウ（Windows 11 スタイル）",
-  "engine.name.heif": "HEIC エンコーダー"
+  "engine.name.heif": "HEIC エンコーダー",
+  "update.button": "{version} に更新",
+  "update.available": "MorphTo {version} が利用可能です",
+  "update.available_hint": "MorphTo を開いて「更新」をクリックしてください。",
+  "update.downloading": "更新をダウンロード中… {percent}%",
+  "update.failed": "更新できませんでした: {error}",
+  "update.latest": "最新バージョンです ({version})。",
+  "update.check_failed": "更新を確認できませんでした: {error}",
+  "tray.check_updates": "更新を確認",
+  "settings.check_updates": "新しいバージョンを確認する (1 日 1 回、GitHub)"
 }
