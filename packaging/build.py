@@ -63,6 +63,37 @@ PRUNE_UNIX = [
     "PySide6/Qt/plugins/platforms/libqvkkhrdisplay.so",
     "PySide6/Qt/plugins/platforms/libqminimal.dylib",
     "PySide6/Qt/plugins/platforms/libqoffscreen.dylib",
+    # Linux: the GTK theme plugin drags GTK 3 and its stack into the bundle; dialogs still look native
+    # through the xdg-desktop-portal theme plugin.
+    "PySide6/Qt/plugins/platformthemes/libqgtk3.so",
+]
+# Libraries only that GTK plugin needed (top of _internal on Linux).
+PRUNE_LINUX_LIBS = [
+    "libgtk-3.so*",
+    "libgdk-3.so*",
+    "libatk-1.0.so*",
+    "libatk-bridge-2.0.so*",
+    "libatspi.so*",
+    "libepoxy.so*",
+    "libcairo-gobject.so*",
+    "libcairo.so*",
+    "libgdk_pixbuf-2.0.so*",
+    "libpangocairo-1.0.so*",
+    "libpango-1.0.so*",
+    "libpangoft2-1.0.so*",
+    "libpixman-1.so*",
+    "libXcomposite.so*",
+    "libXcursor.so*",
+    "libXdamage.so*",
+    "libXfixes.so*",
+    "libXi.so*",
+    "libXinerama.so*",
+    "libXrandr.so*",
+    "libwayland-cursor.so*",
+    "libthai.so*",
+    "libdatrie.so*",
+    "libfribidi.so*",
+    "libgraphite2.so*",
 ]
 PRUNE = PRUNE_WINDOWS if sys.platform == "win32" else PRUNE_UNIX
 
@@ -137,6 +168,8 @@ def pyinstaller(icon: Path, version: Path | None) -> Path:
     extra = ["--version-file", str(version)] if version else []
     if sys.platform == "darwin":
         extra += ["--osx-bundle-identifier", "com.rearzty.morphto"]
+    if sys.platform.startswith("linux"):
+        extra += ["--strip"]  # debug symbols: libpython alone shrinks from 31 MB to ~5 MB
     cmd = [
         sys.executable, "-m", "PyInstaller", str(ROOT / "packaging" / "entry.py"),
         "--name", APP_NAME, "--onedir", "--windowed", "--noconfirm", "--clean", "--log-level", "WARN",
@@ -230,6 +263,10 @@ def make_appimage(dist: Path, icon: Path) -> Path | None:
 
 def prune(dist: Path) -> None:
     internal = dist / "_internal"
+    if sys.platform.startswith("linux"):
+        for pattern in PRUNE_LINUX_LIBS:
+            for lib in internal.glob(pattern):
+                lib.unlink()
     for rel in PRUNE:
         target = internal / rel
         if target.is_dir():
@@ -337,7 +374,7 @@ def make_notices(dest: Path) -> None:
 
 
 def size_report(folder: Path) -> None:
-    files = [p for p in folder.rglob("*") if p.is_file()]
+    files = [p for p in folder.rglob("*") if p.is_file() and not p.is_symlink()]
     total = sum(p.stat().st_size for p in files)
     print(f"\n{folder}: {len(files)} files, {total / 1024 / 1024:.1f} MB")
     for p in sorted(files, key=lambda p: p.stat().st_size, reverse=True)[:12]:
