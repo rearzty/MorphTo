@@ -7,8 +7,8 @@ from dataclasses import asdict, dataclass, field, fields
 from pathlib import Path
 
 from morphto.paths import config_dir, default_output_dir
+from morphto.platform.hotkeys import DEFAULT_HOTKEY
 
-DEFAULT_HOTKEY = "Win+Alt+C"
 OUTPUT_MODES = ("next", "folder", "ask")
 
 

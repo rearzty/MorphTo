@@ -18,12 +18,12 @@ def main() -> None:
 def launch(files: list[str], background: bool = False) -> int:
     """Hand the files to the running instance, or become the instance. Never runs two copies."""
     from morphto.gui.ipc import SERVER_NAME, forward
-    from morphto.platform.windows import acquire_single_instance
+    from morphto.platform import system
 
     show = bool(files) or not background
     if forward(files, show):
         return 0
-    if not acquire_single_instance(SERVER_NAME):
+    if not system.acquire_single_instance(SERVER_NAME):
         # Another instance is starting up or busy: keep trying to reach it for a few seconds.
         deadline = time.monotonic() + 5
         while time.monotonic() < deadline:

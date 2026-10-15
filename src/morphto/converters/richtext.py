@@ -16,6 +16,7 @@ import posixpath
 import re
 import shutil
 import subprocess
+import sys
 import tempfile
 import uuid
 import zipfile
@@ -1468,21 +1469,40 @@ def write_docx(doc: Document, dst: Path, title: str) -> None:
 _NO_WINDOW = getattr(subprocess, "CREATE_NO_WINDOW", 0)
 
 
-def find_edge() -> Path | None:
-    for env in ("ProgramFiles(x86)", "ProgramFiles", "LOCALAPPDATA"):
-        base = os.environ.get(env)
-        if base:
-            candidate = Path(base) / "Microsoft" / "Edge" / "Application" / "msedge.exe"
-            if candidate.is_file():
-                return candidate
-    found = shutil.which("msedge")
-    return Path(found) if found else None
+def find_browser() -> Path | None:
+    """A Chromium-based browser that can print to PDF headless: Edge (in every Windows), Chrome, Chromium,
+    Brave. On macOS and Linux whichever is installed."""
+    candidates: list[Path] = []
+    if sys.platform == "win32":
+        for env in ("ProgramFiles(x86)", "ProgramFiles", "LOCALAPPDATA"):
+            base = os.environ.get(env)
+            if base:
+                candidates.append(Path(base) / "Microsoft" / "Edge" / "Application" / "msedge.exe")
+                candidates.append(Path(base) / "Google" / "Chrome" / "Application" / "chrome.exe")
+    elif sys.platform == "darwin":
+        for app in ("Google Chrome", "Microsoft Edge", "Chromium", "Brave Browser"):
+            for root in (Path("/Applications"), Path.home() / "Applications"):
+                candidates.append(root / f"{app}.app" / "Contents" / "MacOS" / app)
+    names = (
+        "msedge",
+        "google-chrome",
+        "google-chrome-stable",
+        "chromium",
+        "chromium-browser",
+        "microsoft-edge",
+        "brave-browser",
+    )
+    candidates += [Path(p) for p in map(shutil.which, names) if p]
+    return next((c for c in candidates if c.is_file()), None)
+
+
+find_edge = find_browser  # older name
 
 
 def html_to_pdf(html_file: Path, dst: Path, ctx: Context) -> None:
-    edge = find_edge()
+    edge = find_browser()
     if edge is None:
-        raise ConversionError("Saving to PDF needs Microsoft Edge, which is not installed")
+        raise ConversionError("Saving to PDF needs Microsoft Edge, Google Chrome or Chromium")
     with tempfile.TemporaryDirectory(prefix="morphto-edge-") as profile:
         cmd = [
             str(edge), "--headless=new", "--disable-gpu", "--no-first-run", "--no-default-browser-check",
@@ -1493,7 +1513,7 @@ def html_to_pdf(html_file: Path, dst: Path, ctx: Context) -> None:
 
         _run(cmd, ctx)
     if not dst.is_file() or dst.stat().st_size == 0:
-        raise ConversionError("Microsoft Edge could not create the PDF")
+        raise ConversionError("The browser could not create the PDF")
 
 
 def write_pdf(doc: Document, dst: Path, title: str, ctx: Context) -> None:

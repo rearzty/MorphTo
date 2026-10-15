@@ -8,6 +8,8 @@ from __future__ import annotations
 
 import json
 import locale
+import os
+import sys
 from functools import cache
 from pathlib import Path
 
@@ -39,6 +41,11 @@ def _catalog(code: str) -> dict[str, str]:
 
 
 def system_language() -> str:
+    code = _windows_language() if sys.platform == "win32" else _unix_language()
+    return code if code in LANGUAGES else "en"
+
+
+def _windows_language() -> str:
     try:
         import ctypes
 
@@ -46,8 +53,27 @@ def system_language() -> str:
         name = locale.windows_locale.get(lang_id, "")
     except (AttributeError, OSError):
         name = locale.getlocale()[0] or ""
-    code = name.split("_")[0].lower()
-    return code if code in LANGUAGES else "en"
+    return name.split("_")[0].lower()
+
+
+def _unix_language() -> str:
+    """$LANGUAGE / $LC_ALL / $LC_MESSAGES / $LANG ("ru_RU.UTF-8"); on a Mac the system setting, since
+    apps started from the Finder get no $LANG."""
+    for var in ("LANGUAGE", "LC_ALL", "LC_MESSAGES", "LANG"):
+        value = os.environ.get(var, "")
+        if value and value not in ("C", "POSIX", "C.UTF-8"):
+            return value.split(":")[0].split("_")[0].split(".")[0].lower()
+    if sys.platform == "darwin":
+        import subprocess
+
+        try:
+            out = subprocess.run(
+                ["defaults", "read", "-g", "AppleLocale"], capture_output=True, text=True, timeout=2
+            )
+            return out.stdout.strip().split("_")[0].lower()
+        except (OSError, subprocess.SubprocessError):
+            pass
+    return (locale.getlocale()[0] or "").split("_")[0].lower()
 
 
 def set_language(code: str) -> str:

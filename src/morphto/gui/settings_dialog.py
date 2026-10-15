@@ -27,7 +27,8 @@ from morphto.gui import effects, theme
 from morphto.gui.icon import app_icon
 from morphto.gui.workers import InstallTask
 from morphto.i18n import LANGUAGES, engine_name, tr
-from morphto.platform.windows import HOTKEY_KEYS, format_hotkey, split_hotkey
+from morphto.platform import system
+from morphto.platform.hotkeys import HOTKEY_KEYS, MOD_LABELS, format_hotkey, split_hotkey
 from morphto.settings import Settings
 
 
@@ -65,9 +66,9 @@ class SettingsDialog(QDialog):
         mods, key = split_hotkey(settings.hotkey)
         self.mod_buttons: dict[str, QPushButton] = {}
         for mod in ("Ctrl", "Alt", "Shift", "Win"):
-            b = QPushButton(mod, checkable=True, checked=mod in mods)
+            b = QPushButton(MOD_LABELS[mod], checkable=True, checked=mod in mods)
             b.setProperty("mod", "true")
-            b.setFixedWidth(52)
+            b.setMinimumWidth(52)
             b.toggled.connect(self._validate)
             self.mod_buttons[mod] = b
             row.addWidget(b)
@@ -108,6 +109,7 @@ class SettingsDialog(QDialog):
         self.copy = QCheckBox(tr("settings.copy"), checked=settings.copy_to_clipboard)
         self.autostart = QCheckBox(tr("settings.autostart"), checked=settings.autostart)
         self.context_menu = QCheckBox(tr("settings.context_menu"), checked=settings.context_menu)
+        self.context_menu.setVisible(system.CONTEXT_MENU_SUPPORTED)
         self.effects = QCheckBox(tr("settings.effects"), checked=settings.effects)
         self.effects.setVisible(effects.backdrop_supported())
         self.check_updates = QCheckBox(tr("settings.check_updates"), checked=settings.check_updates)

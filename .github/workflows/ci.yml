@@ -2,16 +2,22 @@ name: CI
 
 on:
   push:
-    branches: [main]
+    branches: [main, "port/**"]
   pull_request:
 
 jobs:
   test:
-    runs-on: windows-latest
+    runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
       matrix:
+        os: [windows-latest]
         python: ["3.12", "3.14"]
+        include:
+          - os: ubuntu-latest
+            python: "3.14"
+          - os: macos-latest
+            python: "3.14"
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -25,13 +31,23 @@ jobs:
           ruff check .
           ruff format --check .
       - name: Cache FFmpeg
+        if: runner.os == 'Windows'
         uses: actions/cache@v4
         with:
           path: ~\AppData\Local\MorphTo\engines
           key: ffmpeg-${{ runner.os }}-v1
       - name: Install FFmpeg (for audio/video tests)
+        if: runner.os == 'Windows'
         run: morphto engines install ffmpeg
+      - name: Install FFmpeg and libarchive (Linux)
+        if: runner.os == 'Linux'
+        run: sudo apt-get update && sudo apt-get install -y ffmpeg libarchive-tools libegl1 libxkbcommon0
+      - name: Install FFmpeg (macOS)
+        if: runner.os == 'macOS'
+        run: brew install ffmpeg
       - name: Test
+        env:
+          QT_QPA_PLATFORM: offscreen
         run: pytest -q
 
   build:

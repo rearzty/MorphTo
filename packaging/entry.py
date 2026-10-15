@@ -1,7 +1,8 @@
-"""Entry point of the packaged MorphTo.exe.
+"""Entry point of the packaged app (MorphTo.exe, the macOS .app, the Linux AppImage).
 
-MorphTo.exe is a windowed app. The console front-end ``morphto.com`` (see cli_stub.c) starts it as
-``MorphTo.exe --cli <args>`` with the console's handles, so the same binary serves both.
+On Windows MorphTo.exe is a windowed app; the console front-end ``morphto.com`` (see cli_stub.c) starts it
+as ``MorphTo.exe --cli <args>`` with the console's handles. On macOS and Linux the binary is the command
+too: ``MorphTo convert photo.heic -t jpg`` runs the CLI.
 """
 
 import sys
@@ -31,8 +32,10 @@ def _crash_log() -> None:
 def _attach_console() -> None:
     """MorphTo.exe is a windowed app: in a real console window (cmd, Windows Terminal) it gets no usable
     stdout/stderr. Attach to the console of morphto.com (our parent) and open it directly."""
-    if sys.stdout is not None and sys.stderr is not None and sys.stdin is not None:
-        return  # redirected to pipes/files: Python already set them up
+    if sys.platform != "win32" or (
+        sys.stdout is not None and sys.stderr is not None and sys.stdin is not None
+    ):
+        return  # redirected to pipes/files (or not Windows): Python already set them up
     import ctypes
 
     ATTACH_PARENT_PROCESS = -1
@@ -47,22 +50,25 @@ def _attach_console() -> None:
 
 
 def cleanup() -> None:
-    """Called by the uninstaller: remove what MorphTo put into the registry (autostart, Explorer menu)."""
+    """Called by the uninstaller: remove autostart and the file manager menu entries."""
     from morphto.core.formats import all_formats
-    from morphto.platform import windows
+    from morphto.platform import system
 
-    windows.set_autostart(False)
+    system.set_autostart(False)
     exts = [e for f in all_formats() for e in f.extensions]
-    windows.set_context_menu(False, exts, "")
+    system.set_context_menu(False, exts, "")
+
+
+CLI_COMMANDS = {"convert", "formats", "presets", "engines", "--version", "-V", "--help", "-h"}
 
 
 def main() -> None:
     args = sys.argv[1:]
-    if args[:1] == ["--cli"]:
+    if args[:1] == ["--cli"] or (sys.platform != "win32" and args[:1] and args[0] in CLI_COMMANDS):
         _attach_console()
         from morphto.cli import main as cli_main
 
-        cli_main(args[1:])
+        cli_main(args[1:] if args[0] == "--cli" else args)
     elif args[:1] == ["--cleanup"]:
         cleanup()
     elif args[:1] == ["--self-test"] and len(args) >= 2:

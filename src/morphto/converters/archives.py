@@ -11,6 +11,7 @@ import gzip
 import os
 import shutil
 import subprocess
+import sys
 import tarfile
 import tempfile
 import zipfile
@@ -25,7 +26,12 @@ READ = ("zip", "7z", "tar", "tgz", "rar")
 WRITE = ("zip", "7z", "tar", "tgz")
 
 _NO_WINDOW = getattr(subprocess, "CREATE_NO_WINDOW", 0)
-_TAR = Path(os.environ.get("SYSTEMROOT", r"C:\Windows")) / "System32" / "tar.exe"
+if sys.platform == "win32":
+    _TAR = Path(os.environ.get("SYSTEMROOT", r"C:\Windows")) / "System32" / "tar.exe"
+elif sys.platform == "darwin":
+    _TAR = Path("/usr/bin/tar")  # bsdtar
+else:
+    _TAR = Path(shutil.which("bsdtar") or "/usr/bin/bsdtar")  # the libarchive-tools package
 
 
 class ArchiveConverter(Converter):
@@ -109,9 +115,11 @@ def pack(folder: Path, dst: Path, fmt: str, ctx: Context) -> None:
 
 def _run_tar(args: list[str], ctx: Context, fmt: str) -> None:
     if not _TAR.is_file():
-        raise ConversionError(
-            f"{fmt.upper()} archives need tar.exe, which comes with Windows 10 1803 and later"
-        )
+        if sys.platform == "win32":
+            raise ConversionError(
+                f"{fmt.upper()} archives need tar.exe, which comes with Windows 10 1803 and later"
+            )
+        raise ConversionError(f"{fmt.upper()} archives need bsdtar: sudo apt install libarchive-tools")
     from morphto.converters.office import _run
 
     result = _run([str(_TAR), *args], ctx)

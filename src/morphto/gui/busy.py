@@ -1,11 +1,11 @@
-"""Shows that work is going on while the popup is hidden: a taskbar button with a progress bar and a
-progress ring on the tray icon. Clicking either brings the popup back."""
+"""Shows that work is going on while the popup is hidden: a progress ring on the tray icon everywhere, and on
+Windows also a taskbar button with a progress bar. Clicking either brings the popup back."""
 
 from __future__ import annotations
 
 import ctypes
+import sys
 import uuid
-from ctypes import wintypes
 from typing import TYPE_CHECKING
 
 from PySide6.QtCore import QEvent, QRectF, Qt
@@ -14,9 +14,13 @@ from PySide6.QtWidgets import QWidget
 
 from morphto import APP_NAME
 from morphto.gui.icon import render as render_icon
+from morphto.platform.hotkeys import display_hotkey
 
 if TYPE_CHECKING:
     from morphto.gui.app import Controller
+
+if sys.platform == "win32":
+    from ctypes import wintypes
 
 TBPF_NOPROGRESS, TBPF_INDETERMINATE, TBPF_NORMAL, TBPF_ERROR = 0, 1, 2, 4
 
@@ -36,6 +40,9 @@ class TaskbarProgress:
 
     def __init__(self) -> None:
         self._ptr = ctypes.c_void_p()
+        if sys.platform != "win32":
+            self._ptr = None
+            return
         ole32 = ctypes.windll.ole32
         ole32.CoInitialize(None)
         clsid = _GUID.from_str("56FDF344-FD6D-11d0-958A-006097C9A090")
@@ -71,6 +78,9 @@ class TaskbarProgress:
 
 
 def _flash(hwnd: int) -> None:
+    if sys.platform != "win32":
+        return
+
     class FLASHWINFO(ctypes.Structure):
         _fields_ = [
             ("cbSize", wintypes.UINT),
@@ -137,19 +147,21 @@ class BusyIndicator:
     def __init__(self, controller: Controller) -> None:
         self.controller = controller
         self.taskbar = TaskbarProgress()
-        self.host = _TaskbarHost(self._activate)
-        self.host.setWindowIcon(controller.icon)
+        # Elsewhere a hidden window would show up as a stray app window: the tray ring has to do.
+        self.host = _TaskbarHost(self._activate) if sys.platform == "win32" else None
+        if self.host is not None:
+            self.host.setWindowIcon(controller.icon)
         self._shown_percent = -1
         self.attention = False  # a result is waiting to be seen
 
     def update(self, fraction: float | None, text: str) -> None:
         """Called on every progress tick while a job runs."""
         self.attention = False
-        if not self.host.isVisible():
-            self.host.showMinimized()
-        self.host.setWindowTitle(f"{APP_NAME} — {text}")
-        hwnd = int(self.host.winId())
-        self.taskbar.set(hwnd, fraction)
+        if self.host is not None:
+            if not self.host.isVisible():
+                self.host.showMinimized()
+            self.host.setWindowTitle(f"{APP_NAME} — {text}")
+            self.taskbar.set(int(self.host.winId()), fraction)
         percent = -2 if fraction is None else int(fraction * 50)  # ring steps of 2 %
         if percent != self._shown_percent:
             self._shown_percent = percent
@@ -159,21 +171,24 @@ class BusyIndicator:
     def finish(self, popup_visible: bool, failed: bool = False) -> None:
         """Work is over. If the popup is hidden, keep the taskbar button blinking until it is opened."""
         self._shown_percent = -1
-        hwnd = int(self.host.winId())
-        self.taskbar.clear(hwnd)
-        self.controller.tray.setToolTip(f"{APP_NAME} — {self.controller.settings.hotkey}")
+        hwnd = int(self.host.winId()) if self.host is not None else 0
+        if hwnd:
+            self.taskbar.clear(hwnd)
+        self.controller.tray.setToolTip(f"{APP_NAME} — {display_hotkey(self.controller.settings.hotkey)}")
         if popup_visible:
             self.reset()
             return
         self.attention = True
-        if failed:
+        if failed and hwnd:
             self.taskbar.set(hwnd, 1.0, TBPF_ERROR)
         self.controller.tray.setIcon(ring_icon(None, done=True) if not failed else self.controller.icon)
-        _flash(hwnd)
+        if hwnd:
+            _flash(hwnd)
 
     def reset(self) -> None:
         self.attention = False
-        self.host.hide()
+        if self.host is not None:
+            self.host.hide()
         self.controller.tray.setIcon(self.controller.icon)
 
     def _activate(self) -> None:

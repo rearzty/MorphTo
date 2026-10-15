@@ -76,7 +76,8 @@ class SelfTest(QObject):
         other.close()
         self.popup.start(find_target(self.target))
         self.popup.hide()  # as if the user clicked elsewhere: the taskbar button should take over
-        self.check("taskbar button while busy", self.controller.busy.host.isVisible())
+        host = self.controller.busy.host  # Windows only; elsewhere the tray ring shows progress
+        self.check("taskbar button while busy", host is None or host.isVisible())
         self.timer.start(100)
 
     def stage2(self) -> None:

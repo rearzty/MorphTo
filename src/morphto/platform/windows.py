@@ -1,4 +1,4 @@
-"""Windows integration: global hotkey, autostart, Explorer context menu."""
+"""Windows integration: global hotkey, single instance, autostart, Explorer context menu."""
 
 from __future__ import annotations
 
@@ -12,6 +12,9 @@ from ctypes import wintypes
 from pathlib import Path
 
 from morphto import APP_NAME
+from morphto.platform.hotkeys import HOTKEY_KEYS, format_hotkey, split_hotkey  # noqa: F401 (re-exported)
+
+CONTEXT_MENU_SUPPORTED = True
 
 MOD_ALT, MOD_CONTROL, MOD_SHIFT, MOD_WIN, MOD_NOREPEAT = 0x1, 0x2, 0x4, 0x8, 0x4000
 WM_HOTKEY, WM_QUIT = 0x0312, 0x0012
@@ -35,18 +38,11 @@ _HANDLER_ROUTINE = ctypes.WINFUNCTYPE(wintypes.BOOL, wintypes.DWORD)
 _k32.SetConsoleCtrlHandler.argtypes = [_HANDLER_ROUTINE, wintypes.BOOL]
 
 _MODIFIERS = {"ctrl": MOD_CONTROL, "alt": MOD_ALT, "shift": MOD_SHIFT, "win": MOD_WIN}
-_MOD_ORDER = ["Ctrl", "Alt", "Shift", "Win"]
 _SPECIAL_KEYS = {
     "space": 0x20, "enter": 0x0D, "tab": 0x09, "insert": 0x2D, "delete": 0x2E, "home": 0x24, "end": 0x23,
     "pageup": 0x21, "pagedown": 0x22, "pause": 0x13, "`": 0xC0, "-": 0xBD, "=": 0xBB, "[": 0xDB, "]": 0xDD,
     ";": 0xBA, "'": 0xDE, ",": 0xBC, ".": 0xBE, "/": 0xBF, "\\": 0xDC,
 }  # fmt: skip
-HOTKEY_KEYS = (
-    [chr(c) for c in range(ord("A"), ord("Z") + 1)]
-    + [str(d) for d in range(10)]
-    + [f"F{n}" for n in range(1, 13)]
-    + ["Space", "Insert", "Pause", "`"]
-)
 
 
 def parse_hotkey(text: str) -> tuple[int, int]:
@@ -70,17 +66,6 @@ def parse_hotkey(text: str) -> tuple[int, int]:
     else:
         raise ValueError(f"Unknown key {key!r}")
     return mods, vk
-
-
-def format_hotkey(modifiers: Iterable[str], key: str) -> str:
-    mods = [m for m in _MOD_ORDER if m in set(modifiers)]
-    return "+".join([*mods, key])
-
-
-def split_hotkey(text: str) -> tuple[list[str], str]:
-    parts = [p.strip() for p in text.split("+")]
-    mods = [m for m in _MOD_ORDER if m.lower() in {p.lower() for p in parts[:-1]}]
-    return mods, parts[-1]
 
 
 class HotkeyListener:
@@ -304,3 +289,6 @@ def force_foreground(hwnd: int) -> None:
         user32.AttachThreadInput(our_thread, fg_thread, False)
     else:
         user32.SetForegroundWindow(hwnd)
+
+
+reveal = reveal_in_explorer

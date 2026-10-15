@@ -20,7 +20,8 @@ from morphto.gui.ipc import SERVER_NAME, decode
 from morphto.gui.popup import Popup
 from morphto.gui.workers import UpdateCheckTask, UpdateDownloadTask
 from morphto.i18n import set_language, tr
-from morphto.platform import pipe, windows
+from morphto.platform import pipe, system
+from morphto.platform.hotkeys import display_hotkey
 from morphto.settings import DEFAULT_HOTKEY, Settings
 
 MERGE_MS = 250  # Explorer starts one process per selected file; merge them into one popup
@@ -38,7 +39,7 @@ class Controller(QObject):
         super().__init__()
         self.app = app
         self.settings = Settings.load()
-        self.settings.autostart = windows.autostart_enabled()  # the installer may have turned it on
+        self.settings.autostart = system.autostart_enabled()  # the installer may have turned it on
         set_language(self.settings.language)
         self.icon = app_icon()
         app.setWindowIcon(self.icon)
@@ -50,7 +51,7 @@ class Controller(QObject):
         self._manual_check = False
         self._message_is_update = False
         self.popup = Popup(self)
-        self.hotkey: windows.HotkeyListener | None = None
+        self.hotkey: system.HotkeyListener | None = None
         self.hotkey_pressed.connect(self.popup.toggle)
         self._settings_dialog = None
 
@@ -107,7 +108,7 @@ class Controller(QObject):
         menu.addAction(quit_action)
         self._menu = menu
         self.tray.setContextMenu(menu)
-        self.tray.setToolTip(f"{APP_NAME} — {self.settings.hotkey}")
+        self.tray.setToolTip(f"{APP_NAME} — {display_hotkey(self.settings.hotkey)}")
 
     def _open_popup(self) -> None:
         self.popup.summon()
@@ -122,11 +123,13 @@ class Controller(QObject):
     def welcome(self) -> None:
         from morphto.gui.welcome import WelcomeDialog
 
-        dialog = WelcomeDialog(self.settings.hotkey, autostart=True, context_menu=True)
+        dialog = WelcomeDialog(
+            display_hotkey(self.settings.hotkey), autostart=True, context_menu=system.CONTEXT_MENU_SUPPORTED
+        )
         dialog.exec()
         self.settings.autostart = dialog.autostart.isChecked()
         self.settings.context_menu = dialog.context_menu.isChecked()
-        windows.set_autostart(self.settings.autostart)
+        system.set_autostart(self.settings.autostart)
         self._apply_context_menu(self.settings.context_menu)
         self.save_settings()
         if dialog.change_hotkey:
@@ -136,6 +139,9 @@ class Controller(QObject):
         icon = QSystemTrayIcon.MessageIcon.Warning if error else QSystemTrayIcon.MessageIcon.Information
         self._message_is_update = False
         self.tray.showMessage(title, message, icon, 4000)
+
+    def wake(self) -> None:
+        """Lets Python handle pending signals (see _install_quit_handlers)."""
 
     def _on_message_clicked(self) -> None:
         if self._message_is_update:
@@ -220,14 +226,16 @@ class Controller(QObject):
             self.hotkey.stop()
             self.hotkey = None
         try:
-            listener = windows.HotkeyListener(self.settings.hotkey, self.hotkey_pressed.emit)
+            listener = system.HotkeyListener(self.settings.hotkey, self.hotkey_pressed.emit)
         except ValueError:
             self.settings.hotkey = DEFAULT_HOTKEY
-            listener = windows.HotkeyListener(self.settings.hotkey, self.hotkey_pressed.emit)
+            listener = system.HotkeyListener(self.settings.hotkey, self.hotkey_pressed.emit)
         if listener.start():
             self.hotkey = listener
         else:
-            self.notify(APP_NAME, tr("tray.hotkey_busy", hotkey=self.settings.hotkey), error=True)
+            self.notify(
+                APP_NAME, tr("tray.hotkey_busy", hotkey=display_hotkey(self.settings.hotkey)), error=True
+            )
 
     # ---- IPC ----
 
@@ -238,7 +246,7 @@ class Controller(QObject):
 
     def _flush_files(self) -> None:
         files, self._pending_files = self._pending_files, []
-        windows.allow_foreground()
+        system.allow_foreground()
         self.popup.summon(files or None)
 
     # ---- settings ----
@@ -281,9 +289,9 @@ class Controller(QObject):
                 self._apply_context_menu(True)
         if new.hotkey != old.hotkey:
             self._register_hotkey()
-            self.tray.setToolTip(f"{APP_NAME} — {new.hotkey}")
+            self.tray.setToolTip(f"{APP_NAME} — {display_hotkey(new.hotkey)}")
         if new.autostart != old.autostart:
-            windows.set_autostart(new.autostart)
+            system.set_autostart(new.autostart)
         if new.context_menu != old.context_menu:
             self._apply_context_menu(new.context_menu)
 
@@ -292,7 +300,7 @@ class Controller(QObject):
         exts = [e for f in all_formats() if f.id in sources for e in f.extensions]
         icon = sys.executable if getattr(sys, "frozen", False) else None
         try:
-            windows.set_context_menu(enabled, exts, tr("context.label"), icon)
+            system.set_context_menu(enabled, exts, tr("context.label"), icon)
         except OSError as exc:
             self.notify(APP_NAME, str(exc), error=True)
 
@@ -321,10 +329,12 @@ class Controller(QObject):
 def run(files: list[str], background: bool = False) -> int:
     """Run the tray app. Call through ``morphto.gui.launch`` so only one instance ever runs."""
     files = [str(Path(f).resolve()) for f in files]
-    windows.set_app_user_model_id(APP_ID)
+    system.set_app_user_model_id(APP_ID)
     app = QApplication(sys.argv[:1])
     app.setApplicationName(APP_NAME)
     app.setQuitOnLastWindowClosed(False)
+    if sys.platform == "darwin" and not getattr(sys, "frozen", False):
+        system.hide_dock_icon()  # a menu-bar app; the .app bundle says so in its Info.plist
     first_run = not Settings.path().exists()
     controller = Controller(app)
     _install_quit_handlers(controller)
@@ -341,4 +351,10 @@ def _install_quit_handlers(controller: Controller) -> None:
     Windows calls the console handler on its own thread; it asks the GUI thread to quit and waits.
     """
     controller.quit_requested.connect(controller.quit)
-    windows.on_console_close(controller.request_quit_and_wait)
+    if sys.platform != "win32":
+        # Python runs signal handlers only between bytecodes; while Qt's loop runs native code, a timer
+        # gives it the chance, so Ctrl+C in a terminal works.
+        controller._signal_timer = QTimer(controller)
+        controller._signal_timer.timeout.connect(controller.wake)
+        controller._signal_timer.start(500)
+    system.on_console_close(controller.request_quit_and_wait)

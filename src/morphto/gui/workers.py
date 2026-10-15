@@ -57,7 +57,9 @@ class ConvertTask(QRunnable):
             except Exception as exc:  # never let a worker die silently
                 errors.append(f"{job.source.name}: {exc}")
         cancelled = self.cancel.is_set()
-        copied = bool(results) and not cancelled and self.copy_to_clipboard and clipboard.write_files(results)
+        # On macOS/Linux the clipboard belongs to the GUI thread: the popup copies when it gets the results.
+        copy_here = self.copy_to_clipboard and not clipboard.COPY_IN_GUI_THREAD
+        copied = bool(results) and not cancelled and copy_here and clipboard.write_files(results)
         self.signals.finished.emit(results, errors, cancelled, copied)
 
 

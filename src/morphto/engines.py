@@ -26,7 +26,12 @@ from morphto.paths import engines_dir
 ProgressFn = Callable[[float], None]
 
 _NO_WINDOW = getattr(subprocess, "CREATE_NO_WINDOW", 0)
-_SYSTEM_TAR = Path(os.environ.get("SYSTEMROOT", r"C:\Windows")) / "System32" / "tar.exe"
+if sys.platform == "win32":
+    _SYSTEM_TAR = Path(os.environ.get("SYSTEMROOT", r"C:\Windows")) / "System32" / "tar.exe"
+else:  # bsdtar (libarchive) unpacks .7z: /usr/bin/tar on a Mac, the libarchive-tools package on Linux
+    _SYSTEM_TAR = Path(
+        "/usr/bin/tar" if sys.platform == "darwin" else shutil.which("bsdtar") or "/nonexistent"
+    )
 
 
 class EngineInstallError(Exception):
@@ -118,6 +123,8 @@ class Engine:
                     staging.rename(target)
                 progress(1.0)
                 return
+            if not self.archives:
+                raise EngineInstallError(_system_package_hint(self.name, self.tools[0]))
             raise EngineInstallError("; ".join(errors) or f"{self.name}: no suitable download")
 
     def _fetch(self, archive: Archive, tmp: Path, progress: ProgressFn, cancel: threading.Event) -> Path:
@@ -142,7 +149,10 @@ class Engine:
 
 # Downloads go through the curl.exe that ships with Windows 10 1803+ / 11. That way the app does not
 # need to bundle OpenSSL (~6 MB) just to fetch FFmpeg once. urllib is the fallback (dev setups).
-_SYSTEM_CURL = _SYSTEM_TAR.with_name("curl.exe")
+if sys.platform == "win32":
+    _SYSTEM_CURL = _SYSTEM_TAR.with_name("curl.exe")
+else:
+    _SYSTEM_CURL = Path(shutil.which("curl") or "/usr/bin/curl")
 _USER_AGENT = f"MorphTo/{__version__}"
 
 
@@ -269,13 +279,18 @@ def _extract_zip(
         raise EngineInstallError(f"Archive does not contain {', '.join(sorted(missing))}")
 
 
+def _windows_only(*archives: Archive) -> tuple[Archive, ...]:
+    """These downloads are Windows builds. Elsewhere the program comes from the system (Homebrew, apt...)."""
+    return archives if sys.platform == "win32" else ()
+
+
 _GYAN = "https://www.gyan.dev/ffmpeg/builds/ffmpeg-release-essentials"
 
 FFMPEG = Engine(
     id="ffmpeg",
     name="FFmpeg",
     # Release "essentials" build by Gyan Doshi (GPL, includes x264/x265/vpx/opus/lame), linked from ffmpeg.org.
-    archives=(
+    archives=_windows_only(
         Archive(f"{_GYAN}.7z", f"{_GYAN}.7z.sha256", 34, "7z"),
         Archive(f"{_GYAN}.zip", f"{_GYAN}.zip.sha256", 110, "zip"),
     ),
@@ -288,7 +303,7 @@ FFMPEG = Engine(
 RESVG = Engine(
     id="resvg",
     name="SVG renderer",
-    archives=(
+    archives=_windows_only(
         Archive(
             "https://github.com/linebender/resvg/releases/download/v0.47.0/resvg-win64.zip",
             "",
@@ -306,7 +321,7 @@ RESVG = Engine(
 LIBRAW = Engine(
     id="libraw",
     name="RAW decoder",
-    archives=(
+    archives=_windows_only(
         Archive(
             "https://www.libraw.org/data/LibRaw-0.22.2-Win64.zip",
             "",
@@ -373,10 +388,31 @@ class WheelEngine:
         return f"cp{sys.version_info.major}{sys.version_info.minor}-cp{sys.version_info.major}{sys.version_info.minor}-win_amd64"
 
     def pick_wheel(self, release: dict) -> tuple[str, str, int]:
-        """(url, sha256, size) of the wheel for this Python from a PyPI release JSON."""
+        """(url, sha256, size) of the best wheel for this Python and system from a PyPI release JSON."""
+        wheels = [f for f in release.get("urls", []) if f.get("packagetype") == "bdist_wheel"]
+        try:
+            from packaging.tags import sys_tags
+            from packaging.utils import InvalidWheelFilename, parse_wheel_filename
+        except ImportError:
+            sys_tags = None
+        if sys_tags is not None:
+            # sys_tags() lists what this interpreter accepts, most specific first (manylinux, macOS...)
+            rank = {str(t): i for i, t in enumerate(sys_tags())}
+            best: tuple[int, dict] | None = None
+            for f in wheels:
+                try:
+                    tags = parse_wheel_filename(f["filename"])[3]
+                except InvalidWheelFilename:
+                    continue
+                score = min((rank[str(t)] for t in tags if str(t) in rank), default=None)
+                if score is not None and (best is None or score < best[0]):
+                    best = (score, f)
+            if best is not None:
+                f = best[1]
+                return f["url"], f["digests"]["sha256"], int(f.get("size") or 0)
         tag = self.wheel_tag()
-        for f in release.get("urls", []):
-            if f.get("packagetype") == "bdist_wheel" and f["filename"].endswith(f"{tag}.whl"):
+        for f in wheels:
+            if f["filename"].endswith(f"{tag}.whl"):
                 return f["url"], f["digests"]["sha256"], int(f.get("size") or 0)
         raise EngineInstallError(f"{self.name}: no download for this system ({tag})")
 
@@ -405,6 +441,12 @@ class WheelEngine:
         with self._lock:
             if self.install_dir.exists():
                 shutil.rmtree(self.install_dir)
+
+
+def _system_package_hint(name: str, package: str) -> str:
+    if sys.platform == "darwin":
+        return f"{name} is not installed. Install it with Homebrew: brew install {package}"
+    return f"{name} is not installed. Install it with your package manager, e.g.: sudo apt install {package}"
 
 
 def _install_wheel_data(root: Path) -> None:
@@ -469,13 +511,21 @@ class OfficeEngine:
         override = os.environ.get(self.env_var)
         if override:
             candidates.append(Path(override))
-        for env in ("ProgramFiles", "ProgramW6432", "ProgramFiles(x86)"):
-            base = os.environ.get(env)
-            if base:
-                candidates.append(Path(base) / "LibreOffice" / "program" / "soffice.com")
-        found = shutil.which("soffice")
-        if found:
-            candidates.append(Path(found).with_suffix(".com"))
+        if sys.platform == "win32":
+            for env in ("ProgramFiles", "ProgramW6432", "ProgramFiles(x86)"):
+                base = os.environ.get(env)
+                if base:
+                    candidates.append(Path(base) / "LibreOffice" / "program" / "soffice.com")
+            found = shutil.which("soffice")
+            if found:
+                candidates.append(Path(found).with_suffix(".com"))
+            return candidates
+        candidates += [
+            Path("/Applications/LibreOffice.app/Contents/MacOS/soffice"),
+            Path.home() / "Applications/LibreOffice.app/Contents/MacOS/soffice",
+        ]
+        candidates += [Path(p) for p in (shutil.which("soffice"), shutil.which("libreoffice")) if p]
+        candidates += [Path("/usr/lib/libreoffice/program/soffice"), Path("/opt/libreoffice/program/soffice")]
         return candidates
 
     def tool(self, name: str = "soffice") -> Path | None:
@@ -506,6 +556,8 @@ class OfficeEngine:
     def install(self, progress: ProgressFn | None = None, cancel: threading.Event | None = None) -> None:
         progress = progress or (lambda _f: None)
         cancel = cancel or threading.Event()
+        if sys.platform != "win32":
+            raise EngineInstallError(_system_package_hint(self.name, "libreoffice"))
         with self._lock:
             url = self.latest_msi()
             expected = _fetch_text(f"{url}.sha256").split()[0].lower()

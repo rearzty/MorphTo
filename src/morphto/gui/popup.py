@@ -69,7 +69,7 @@ from morphto.gui import effects, theme
 from morphto.gui.icon import render as render_icon
 from morphto.gui.workers import ConvertTask, InstallTask, Job
 from morphto.i18n import engine_name, tr
-from morphto.platform import clipboard, windows
+from morphto.platform import clipboard, system
 
 if TYPE_CHECKING:
     from morphto.gui.app import Controller
@@ -340,7 +340,7 @@ class ResultCard(QFrame):
 
     def mouseDoubleClickEvent(self, event) -> None:
         if self.paths:
-            windows.open_file(self.paths[0])
+            system.open_file(self.paths[0])
             self.popup.hide()
 
 
@@ -595,7 +595,7 @@ class Popup(QWidget):
         self.show()
         self.raise_()
         self.activateWindow()
-        windows.force_foreground(int(self.winId()))
+        system.force_foreground(int(self.winId()))
         self.search.setFocus()
 
     def _show_drop_page(self, index: int) -> None:
@@ -1042,6 +1042,13 @@ class Popup(QWidget):
         self.controller.busy.update(overall, text)
 
     def _on_finished(self, results: list[Path], errors: list[str], cancelled: bool, copied: bool) -> None:
+        if (
+            results
+            and not cancelled
+            and clipboard.COPY_IN_GUI_THREAD
+            and self.controller.settings.copy_to_clipboard
+        ):
+            copied = clipboard.write_files(results)
         self.task = None
         self.list.setEnabled(True)
         self.search.setEnabled(True)
@@ -1066,8 +1073,8 @@ class Popup(QWidget):
         first = results[0]
         self._set_status("done", text, primary=tr("popup.open"), secondary=tr("popup.show_in_folder"))
         self.result_card.set_results(results, self._source_size)
-        self._primary_action = lambda: (windows.open_file(first), self.hide())
-        self._secondary_action = lambda: (windows.reveal_in_explorer(first), self.hide())
+        self._primary_action = lambda: (system.open_file(first), self.hide())
+        self._secondary_action = lambda: (system.reveal(first), self.hide())
         if errors:
             self.status_label.setToolTip("\n".join(errors))
         if self.isVisible():

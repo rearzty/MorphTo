@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import os
+import sys
 from pathlib import Path
 
 from morphto import APP_NAME
@@ -17,13 +18,22 @@ def _base(env: str, fallback: Path) -> Path:
 
 
 def config_dir() -> Path:
-    """Roaming settings: %APPDATA%\\MorphTo."""
-    return _base("APPDATA", Path.home() / "AppData" / "Roaming")
+    r"""Settings: %APPDATA%\MorphTo, ~/Library/Application Support/MorphTo, ~/.config/MorphTo."""
+    if sys.platform == "win32":
+        return _base("APPDATA", Path.home() / "AppData" / "Roaming")
+    if sys.platform == "darwin":
+        return _base("", Path.home() / "Library" / "Application Support")
+    return _base("XDG_CONFIG_HOME", Path.home() / ".config")
 
 
 def data_dir() -> Path:
-    """Machine-local data such as downloaded engines: %LOCALAPPDATA%\\MorphTo."""
-    return _base("LOCALAPPDATA", Path.home() / "AppData" / "Local")
+    r"""Downloaded engines, logs: %LOCALAPPDATA%\MorphTo, ~/Library/Application Support/MorphTo,
+    ~/.local/share/MorphTo."""
+    if sys.platform == "win32":
+        return _base("LOCALAPPDATA", Path.home() / "AppData" / "Local")
+    if sys.platform == "darwin":
+        return _base("", Path.home() / "Library" / "Application Support")
+    return _base("XDG_DATA_HOME", Path.home() / ".local" / "share")
 
 
 def engines_dir() -> Path:

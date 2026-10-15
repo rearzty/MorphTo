@@ -48,7 +48,7 @@ def _stay_out_of_the_way() -> None:
     from PySide6.QtWidgets import QSystemTrayIcon, QWidget
 
     from morphto.gui import busy, popup
-    from morphto.platform import windows
+    from morphto.platform import system as windows
 
     original_show = QWidget.show
 
