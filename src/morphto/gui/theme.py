@@ -44,6 +44,9 @@ CATEGORY_COLORS = {
     Category.DOCUMENT: "#4F8BFF",
     Category.SPREADSHEET: "#22A861",
     Category.PRESENTATION: "#E8613A",
+    Category.DATA: "#8B6CEF",
+    Category.BOOK: "#C2873A",
+    Category.ARCHIVE: "#6B7A90",
 }
 PRESET_COLOR = "#7C6CFF"
 

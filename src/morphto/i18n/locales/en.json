@@ -88,5 +88,9 @@
   "tray.check_updates": "Check for updates",
   "settings.check_updates": "Check for new versions (once a day, on GitHub)",
   "popup.clipboard_busy": "The clipboard is busy with another program. Try again.",
-  "popup.clipboard_unreadable": "Cannot read the image from the clipboard. Copy it again or save it as a file."
+  "popup.clipboard_unreadable": "Cannot read the image from the clipboard. Copy it again or save it as a file.",
+  "format.folder": "Folder (unpack)",
+  "engine.name.resvg": "SVG renderer",
+  "engine.name.libraw": "RAW decoder",
+  "engine.name.jxl": "JPEG XL codec"
 }

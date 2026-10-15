@@ -26,13 +26,13 @@ WRITE = {"png", "jpg", "webp", "avif", "gif", "bmp", "tiff", "ico", "icns", "tga
 _PIL_FORMAT = {
     "png": "PNG", "jpg": "JPEG", "webp": "WEBP", "avif": "AVIF", "heic": "HEIF", "gif": "GIF",
     "bmp": "BMP", "tiff": "TIFF", "ico": "ICO", "icns": "ICNS", "tga": "TGA", "jp2": "JPEG2000",
-    "pdf": "PDF",
+    "pdf": "PDF", "jxl": "JXL",
 }  # fmt: skip
 _NO_ALPHA = {"jpg", "bmp", "pdf", "jp2"}
 _ANIMATED = {"gif", "webp", "png", "avif"}
 _MULTIPAGE = {"pdf", "tiff"}
-_KEEP_META = {"jpg", "webp", "png", "tiff", "avif", "heic"}
-_DEFAULT_QUALITY = {"jpg": 90, "webp": 90, "avif": 75, "heic": 85, "jp2": 90}
+_KEEP_META = {"jpg", "webp", "png", "tiff", "avif", "heic", "jxl"}
+_DEFAULT_QUALITY = {"jpg": 90, "webp": 90, "avif": 75, "heic": 85, "jp2": 90, "jxl": 90}
 _ICO_SIZES = [16, 24, 32, 48, 64, 128, 256]
 
 

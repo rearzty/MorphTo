@@ -6,7 +6,9 @@ from morphto.core.registry import Registry
 
 
 def register_builtin(registry: Registry) -> None:
+    from morphto.converters.archives import ArchiveConverter
     from morphto.converters.data import DataConverter
+    from morphto.converters.extra_images import JxlConverter, RawConverter, SvgConverter
     from morphto.converters.images import HeifWriter, PillowConverter
     from morphto.converters.media import FFmpegConverter
     from morphto.converters.office import LibreOfficeConverter, MsOfficeConverter, office_families
@@ -15,11 +17,15 @@ def register_builtin(registry: Registry) -> None:
 
     registry.add(PillowConverter())
     registry.add(HeifWriter())
+    registry.add(JxlConverter())
+    registry.add(SvgConverter())
+    registry.add(RawConverter())
     registry.add(FFmpegConverter())
     registry.add(PdfiumConverter())
     registry.add(DataConverter())
     registry.add(RichTextConverter())
     registry.add(PdfBookConverter())
+    registry.add(ArchiveConverter())
     registry.add(LibreOfficeConverter())
     families = office_families()
     if families:

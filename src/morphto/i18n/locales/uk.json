@@ -88,5 +88,9 @@
   "tray.check_updates": "Перевірити оновлення",
   "settings.check_updates": "Перевіряти нові версії (раз на день, на GitHub)",
   "popup.clipboard_busy": "Буфер обміну зайнятий іншою програмою. Спробуйте ще раз.",
-  "popup.clipboard_unreadable": "Не вдалося прочитати зображення з буфера. Скопіюйте його ще раз або збережіть у файл."
+  "popup.clipboard_unreadable": "Не вдалося прочитати зображення з буфера. Скопіюйте його ще раз або збережіть у файл.",
+  "format.folder": "Тека (розпакувати)",
+  "engine.name.resvg": "рендерер SVG",
+  "engine.name.libraw": "декодер RAW",
+  "engine.name.jxl": "кодек JPEG XL"
 }

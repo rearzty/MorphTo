@@ -88,5 +88,9 @@
   "tray.check_updates": "업데이트 확인",
   "settings.check_updates": "새 버전 확인 (하루 한 번, GitHub)",
   "popup.clipboard_busy": "다른 프로그램이 클립보드를 사용 중입니다. 다시 시도하세요.",
-  "popup.clipboard_unreadable": "클립보드의 이미지를 읽을 수 없습니다. 다시 복사하거나 파일로 저장하세요."
+  "popup.clipboard_unreadable": "클립보드의 이미지를 읽을 수 없습니다. 다시 복사하거나 파일로 저장하세요.",
+  "format.folder": "폴더 (압축 풀기)",
+  "engine.name.resvg": "SVG 렌더러",
+  "engine.name.libraw": "RAW 디코더",
+  "engine.name.jxl": "JPEG XL 코덱"
 }

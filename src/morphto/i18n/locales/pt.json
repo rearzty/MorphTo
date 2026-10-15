@@ -88,5 +88,9 @@
   "tray.check_updates": "Verificar atualizações",
   "settings.check_updates": "Verificar novas versões (uma vez por dia, no GitHub)",
   "popup.clipboard_busy": "A área de transferência está em uso por outro programa. Tente novamente.",
-  "popup.clipboard_unreadable": "Não foi possível ler a imagem da área de transferência. Copie-a novamente ou salve como arquivo."
+  "popup.clipboard_unreadable": "Não foi possível ler a imagem da área de transferência. Copie-a novamente ou salve como arquivo.",
+  "format.folder": "Pasta (extrair)",
+  "engine.name.resvg": "renderizador SVG",
+  "engine.name.libraw": "decodificador RAW",
+  "engine.name.jxl": "codec JPEG XL"
 }

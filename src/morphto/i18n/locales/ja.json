@@ -88,5 +88,9 @@
   "tray.check_updates": "更新を確認",
   "settings.check_updates": "新しいバージョンを確認する (1 日 1 回、GitHub)",
   "popup.clipboard_busy": "クリップボードは別のプログラムが使用中です。もう一度お試しください。",
-  "popup.clipboard_unreadable": "クリップボードの画像を読み取れません。もう一度コピーするか、ファイルとして保存してください。"
+  "popup.clipboard_unreadable": "クリップボードの画像を読み取れません。もう一度コピーするか、ファイルとして保存してください。",
+  "format.folder": "フォルダー (展開)",
+  "engine.name.resvg": "SVG レンダラー",
+  "engine.name.libraw": "RAW デコーダー",
+  "engine.name.jxl": "JPEG XL コーデック"
 }

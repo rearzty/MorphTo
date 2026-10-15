@@ -88,5 +88,9 @@
   "tray.check_updates": "Rechercher les mises à jour",
   "settings.check_updates": "Rechercher les nouvelles versions (une fois par jour, sur GitHub)",
   "popup.clipboard_busy": "Le presse-papiers est utilisé par un autre programme. Réessayez.",
-  "popup.clipboard_unreadable": "Impossible de lire l'image du presse-papiers. Copiez-la à nouveau ou enregistrez-la dans un fichier."
+  "popup.clipboard_unreadable": "Impossible de lire l'image du presse-papiers. Copiez-la à nouveau ou enregistrez-la dans un fichier.",
+  "format.folder": "Dossier (extraire)",
+  "engine.name.resvg": "moteur de rendu SVG",
+  "engine.name.libraw": "décodeur RAW",
+  "engine.name.jxl": "codec JPEG XL"
 }

@@ -88,5 +88,9 @@
   "tray.check_updates": "Cerca aggiornamenti",
   "settings.check_updates": "Cerca nuove versioni (una volta al giorno, su GitHub)",
   "popup.clipboard_busy": "Gli appunti sono usati da un altro programma. Riprova.",
-  "popup.clipboard_unreadable": "Impossibile leggere l'immagine dagli appunti. Copiala di nuovo o salvala come file."
+  "popup.clipboard_unreadable": "Impossibile leggere l'immagine dagli appunti. Copiala di nuovo o salvala come file.",
+  "format.folder": "Cartella (estrai)",
+  "engine.name.resvg": "renderer SVG",
+  "engine.name.libraw": "decoder RAW",
+  "engine.name.jxl": "codec JPEG XL"
 }

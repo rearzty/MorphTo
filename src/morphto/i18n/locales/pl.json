@@ -88,5 +88,9 @@
   "tray.check_updates": "Sprawdź aktualizacje",
   "settings.check_updates": "Sprawdzaj nowe wersje (raz dziennie, na GitHubie)",
   "popup.clipboard_busy": "Schowek jest używany przez inny program. Spróbuj ponownie.",
-  "popup.clipboard_unreadable": "Nie można odczytać obrazu ze schowka. Skopiuj go ponownie lub zapisz jako plik."
+  "popup.clipboard_unreadable": "Nie można odczytać obrazu ze schowka. Skopiuj go ponownie lub zapisz jako plik.",
+  "format.folder": "Folder (rozpakuj)",
+  "engine.name.resvg": "renderer SVG",
+  "engine.name.libraw": "dekoder RAW",
+  "engine.name.jxl": "kodek JPEG XL"
 }

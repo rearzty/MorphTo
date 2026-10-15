@@ -51,10 +51,24 @@ _DEFAULT_ORDER: dict[Category, list[str]] = {
     Category.DOCUMENT: ["pdf", "docx", "png", "jpg", "odt", "txt"],
     Category.SPREADSHEET: ["pdf", "xlsx", "csv", "png", "ods"],
     Category.PRESENTATION: ["pdf", "png", "jpg", "pptx", "odp"],
+    Category.DATA: ["json", "csv", "xlsx", "yaml", "xml"],
+    Category.BOOK: ["epub", "fb2", "pdf", "docx"],
+    Category.ARCHIVE: ["folder", "zip", "7z"],
 }
 # What people usually want from a specific source format (goes before the category defaults).
 _FORMAT_ORDER: dict[str, list[str]] = {
     "pdf": ["png", "jpg", "txt"],
+    "md": ["pdf", "html", "docx"],
+    "html": ["pdf", "md", "docx"],
+    "epub": ["fb2", "pdf"],
+    "fb2": ["epub", "pdf"],
+    "json": ["yaml", "csv", "xlsx"],
+    "yaml": ["json"],
+    "xml": ["json", "csv"],
+    "raw": ["jpg", "png", "tiff"],
+    "svg": ["png", "ico", "jpg"],
+    "jxl": ["jpg", "png"],
+    "m4a": ["mp3", "m4r"],
     "txt": ["pdf", "docx"],
     "csv": ["xlsx"],
     "heic": ["jpg", "png"],
@@ -70,7 +84,6 @@ _FORMAT_ORDER: dict[str, list[str]] = {
     "avi": ["mp4"],
     "wav": ["mp3", "flac"],
     "flac": ["mp3", "m4a"],
-    "m4a": ["mp3"],
     "opus": ["mp3"],
     "ogg": ["mp3"],
 }

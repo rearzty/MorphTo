@@ -36,9 +36,11 @@ class EngineInstallError(Exception):
 @dataclass(frozen=True)
 class Archive:
     url: str
-    sha256_url: str
+    sha256_url: str  # where the publisher lists the checksum ("" when it is pinned in ``sha256``)
     size_mb: int
     kind: str  # "7z" (needs the tar.exe that ships with Windows 11) or "zip"
+    sha256: str = ""  # pinned checksum, for downloads whose publisher lists none
+    folder: str = "/bin/"  # where the programs sit inside the archive ("" = anywhere)
 
 
 @dataclass
@@ -48,6 +50,7 @@ class Engine:
     archives: tuple[Archive, ...]  # tried in order; the first is the smallest download
     tools: tuple[str, ...]  # executables to extract from the archive (without .exe)
     env_var: str
+    extra: tuple[str, ...] = ()  # other files the programs need (DLLs), taken from the same folder
     _lock: threading.Lock = field(default_factory=threading.Lock, repr=False)
 
     @property
@@ -86,7 +89,7 @@ class Engine:
         """Delete files left over by older versions (e.g. ffprobe.exe, ~100 MB, no longer needed)."""
         if not self.install_dir.is_dir():
             return
-        keep = {f"{t}.exe" for t in self.tools}
+        keep = {f"{t}.exe" for t in self.tools} | set(self.extra)
         for item in self.install_dir.iterdir():
             if item.name not in keep:
                 with contextlib.suppress(OSError):
@@ -119,7 +122,7 @@ class Engine:
 
     def _fetch(self, archive: Archive, tmp: Path, progress: ProgressFn, cancel: threading.Event) -> Path:
         file = tmp / f"download.{archive.kind}"
-        expected = _fetch_text(archive.sha256_url).split()[0].lower()
+        expected = archive.sha256 or _fetch_text(archive.sha256_url).split()[0].lower()
         digest = _download(archive.url, file, progress, cancel)
         if digest != expected:
             raise EngineInstallError(f"{self.name}: checksum mismatch, download is corrupted")
@@ -128,7 +131,7 @@ class Engine:
         if archive.kind == "7z":
             _extract_7z(file, staging, self.tools)
         else:
-            _extract_zip(file, staging, self.tools)
+            _extract_zip(file, staging, self.tools, self.extra, archive.folder)
         return staging
 
     def remove(self) -> None:
@@ -249,13 +252,15 @@ def _extract_7z(archive: Path, dest: Path, tools: tuple[str, ...]) -> None:
     shutil.rmtree(unpacked)
 
 
-def _extract_zip(archive: Path, dest: Path, tools: tuple[str, ...]) -> None:
-    wanted = {f"{t}.exe" for t in tools}
+def _extract_zip(
+    archive: Path, dest: Path, tools: tuple[str, ...], extra: tuple[str, ...] = (), folder: str = "/bin/"
+) -> None:
+    wanted = {f"{t}.exe" for t in tools} | set(extra)
     found: set[str] = set()
     with zipfile.ZipFile(archive) as zf:
         for info in zf.infolist():
             name = info.filename.rsplit("/", 1)[-1]
-            if name in wanted and "/bin/" in f"/{info.filename}":
+            if name in wanted and folder in f"/{info.filename}":
                 with zf.open(info) as src, (dest / name).open("wb") as out:
                     shutil.copyfileobj(src, out, 1 << 20)
                 found.add(name)
@@ -276,6 +281,43 @@ FFMPEG = Engine(
     ),
     tools=("ffmpeg",),
     env_var="MORPHTO_FFMPEG",
+)
+
+
+# SVG rendering: resvg by the Linebender project (Apache-2.0 / MIT). The last release with a Windows build.
+RESVG = Engine(
+    id="resvg",
+    name="SVG renderer",
+    archives=(
+        Archive(
+            "https://github.com/linebender/resvg/releases/download/v0.47.0/resvg-win64.zip",
+            "",
+            2,
+            "zip",
+            sha256="5684e59ceaa53ce720b49efb441b0918ae99d04e8ce3f6f753664524592d67f1",
+            folder="",
+        ),
+    ),
+    tools=("resvg",),
+    env_var="MORPHTO_RESVG",
+)
+
+# Camera RAW: LibRaw's own Windows build (LGPL-2.1 / CDDL-1.0); dcraw_emu.exe is its command-line decoder.
+LIBRAW = Engine(
+    id="libraw",
+    name="RAW decoder",
+    archives=(
+        Archive(
+            "https://www.libraw.org/data/LibRaw-0.22.2-Win64.zip",
+            "",
+            4,
+            "zip",
+            sha256="ac64fa12bb00a7581332d4c6ab918c0533fb3f119d6b668d47a6875410dca948",
+        ),
+    ),
+    tools=("dcraw_emu",),
+    extra=("libraw.dll",),
+    env_var="MORPHTO_LIBRAW",
 )
 
 
@@ -542,7 +584,16 @@ def _prune_tree(root: Path, patterns: tuple[str, ...]) -> None:
 
 LIBREOFFICE = OfficeEngine()
 
-_ENGINES = {e.id: e for e in (FFMPEG, HEIF_ENCODER, LIBREOFFICE)}
+JXL_CODEC = WheelEngine(
+    id="jxl",
+    name="JPEG XL codec",
+    package="pillow-jxl-plugin",
+    module="pillow_jxl",
+    version="1.3.8",
+    size_mb=5,
+)
+
+_ENGINES = {e.id: e for e in (FFMPEG, HEIF_ENCODER, JXL_CODEC, RESVG, LIBRAW, LIBREOFFICE)}
 
 
 def get(engine_id: str) -> Engine | WheelEngine | OfficeEngine:

@@ -88,5 +88,9 @@
   "tray.check_updates": "Проверить обновления",
   "settings.check_updates": "Проверять новые версии (раз в день, на GitHub)",
   "popup.clipboard_busy": "Буфер обмена занят другой программой. Попробуйте ещё раз.",
-  "popup.clipboard_unreadable": "Не удалось прочитать картинку из буфера. Скопируйте её ещё раз или сохраните в файл."
+  "popup.clipboard_unreadable": "Не удалось прочитать картинку из буфера. Скопируйте её ещё раз или сохраните в файл.",
+  "format.folder": "Папка (распаковать)",
+  "engine.name.resvg": "отрисовщик SVG",
+  "engine.name.libraw": "декодер RAW",
+  "engine.name.jxl": "кодек JPEG XL"
 }

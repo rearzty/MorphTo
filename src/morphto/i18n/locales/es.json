@@ -88,5 +88,9 @@
   "tray.check_updates": "Buscar actualizaciones",
   "settings.check_updates": "Buscar nuevas versiones (una vez al día, en GitHub)",
   "popup.clipboard_busy": "Otro programa está usando el portapapeles. Inténtalo de nuevo.",
-  "popup.clipboard_unreadable": "No se puede leer la imagen del portapapeles. Cópiala de nuevo o guárdala como archivo."
+  "popup.clipboard_unreadable": "No se puede leer la imagen del portapapeles. Cópiala de nuevo o guárdala como archivo.",
+  "format.folder": "Carpeta (extraer)",
+  "engine.name.resvg": "renderizador SVG",
+  "engine.name.libraw": "decodificador RAW",
+  "engine.name.jxl": "códec JPEG XL"
 }

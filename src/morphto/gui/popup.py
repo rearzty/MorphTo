@@ -156,7 +156,9 @@ def size_change(before: int, after: int) -> str:
 
 
 def target_label(t: Target) -> str:
-    return tr(f"preset.{t.preset}") if t.preset else t.format.name
+    if t.preset:
+        return tr(f"preset.{t.preset}")
+    return tr("format.folder") if t.format.id == "folder" else t.format.name
 
 
 # --- list delegate -------------------------------------------------------------------------------
@@ -1005,7 +1007,7 @@ class Popup(QWidget):
             try:
                 first = self.items[0]
                 start_dir = folder if first.from_clipboard else first.path.parent
-                if len(self.items) == 1:
+                if len(self.items) == 1 and target.format.id != "folder":  # unpacking: pick a folder
                     suggested = start_dir / f"{first.path.stem}.{target.format.ext}"
                     pattern = " ".join(f"*.{e}" for e in target.format.extensions)
                     name, _ = QFileDialog.getSaveFileName(

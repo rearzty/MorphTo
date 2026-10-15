@@ -97,6 +97,8 @@ def pyinstaller(icon: Path, version: Path) -> Path:
         "--icon", str(icon), "--version-file", str(version),
         "--distpath", str(work / "dist"), "--workpath", str(work / "work"), "--specpath", str(work),
         "--paths", str(ROOT / "src"), "--collect-data", "morphto",
+        # used by the JPEG XL plugin, which is downloaded later and imports it
+        "--hidden-import", "packaging.version",
         *[arg for module in EXCLUDE_MODULES for arg in ("--exclude-module", module)],
     ]  # fmt: skip
     subprocess.run(cmd, check=True, cwd=ROOT)
@@ -154,6 +156,10 @@ BUNDLED = [
     ("pi-heif", "BSD-3-Clause; libheif and libde265 are LGPL-3.0", ["LICENSE.txt", "LICENSES_bundled.txt"]),
     ("pypdfium2", "BSD-3-Clause or Apache-2.0; PDFium is BSD-3-Clause, with the licenses of its libraries",
      ["BSD-3-Clause.txt", "*/BUILD_LICENSES/*"]),
+    ("markdown-it-py", "MIT", ["LICENSE", "LICENSE.markdown-it"]),
+    ("mdurl", "MIT", ["LICENSE"]),
+    ("PyYAML", "MIT", ["LICENSE"]),
+    ("packaging", "Apache-2.0 or BSD-2-Clause", ["LICENSE.BSD"]),
     ("pyinstaller", "GPL-2.0-or-later with the bootloader exception (only its bootloader is shipped)", ["COPYING.txt"]),
 ]  # fmt: skip
 
@@ -192,6 +198,9 @@ def make_notices(dest: Path) -> None:
         "  - FFmpeg (www.gyan.dev builds) — GPL-3.0",
         "  - pillow-heif, the HEIC encoder (from PyPI) — BSD-3-Clause; libheif/libde265 LGPL-3.0, x265 GPL-2.0",
         "  - LibreOffice (www.libreoffice.org), for office documents — MPL-2.0, unless already installed",
+        "  - resvg (github.com/linebender/resvg), the SVG renderer — Apache-2.0 or MIT",
+        "  - LibRaw (www.libraw.org), the camera RAW decoder — LGPL-2.1 or CDDL-1.0",
+        "  - pillow-jxl-plugin (from PyPI), the JPEG XL codec — GPL-3.0-or-later",
         "",
         "Qt and Qt for Python are used as unmodified dynamically linked libraries, so they can be replaced by",
         "the user, as the LGPL requires. Their source code is available from https://download.qt.io/.",
