@@ -367,11 +367,18 @@ def main() -> None:
         internal = dist / "Contents" / "Frameworks"  # PyInstaller's layout inside a .app
         for rel in PRUNE:
             target = internal / rel
-            if target.is_dir():
+            if target.is_symlink():  # inside a bundle, data folders link into Contents/Resources
+                real = target.resolve()
+                target.unlink()
+                if real.is_dir():
+                    shutil.rmtree(real)
+            elif target.is_dir():
                 shutil.rmtree(target)
             elif target.exists():
                 target.unlink()
         finish_macos_bundle(dist)
+        # Editing the bundle broke PyInstaller's ad-hoc signature; Apple Silicon refuses to run unsigned code.
+        subprocess.run(["codesign", "--force", "--deep", "--sign", "-", str(dist)], check=True)
         target = DIST.with_name(f"{APP_NAME}.app")
         shutil.rmtree(target, ignore_errors=True)
         shutil.move(str(dist), target)
