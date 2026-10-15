@@ -10,6 +10,7 @@ from morphto.gui import theme
 from morphto.gui.icon import app_icon
 from morphto.gui.icon import render as render_icon
 from morphto.i18n import tr
+from morphto.platform import system
 
 
 class WelcomeDialog(QDialog):
@@ -55,6 +56,7 @@ class WelcomeDialog(QDialog):
 
         self.autostart = QCheckBox(tr("settings.autostart"), checked=autostart)
         self.context_menu = QCheckBox(tr("settings.context_menu"), checked=context_menu)
+        self.context_menu.setVisible(system.CONTEXT_MENU_SUPPORTED)
         lay.addSpacing(4)
         lay.addWidget(self.autostart)
         lay.addWidget(self.context_menu)

@@ -92,5 +92,9 @@
   "format.folder": "Carpeta (extraer)",
   "engine.name.resvg": "renderizador SVG",
   "engine.name.libraw": "decodificador RAW",
-  "engine.name.jxl": "códec JPEG XL"
+  "engine.name.jxl": "códec JPEG XL",
+  "settings.autostart.mac": "Abrir al iniciar sesión",
+  "settings.autostart.linux": "Iniciar al iniciar sesión",
+  "settings.context_menu.linux": "Mostrar «Convertir con MorphTo» en el gestor de archivos",
+  "welcome.tray.mac": "MorphTo espera en la barra de menús y funciona sin conexión."
 }

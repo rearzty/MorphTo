@@ -92,5 +92,9 @@
   "format.folder": "Тека (розпакувати)",
   "engine.name.resvg": "рендерер SVG",
   "engine.name.libraw": "декодер RAW",
-  "engine.name.jxl": "кодек JPEG XL"
+  "engine.name.jxl": "кодек JPEG XL",
+  "settings.autostart.mac": "Відкривати під час входу",
+  "settings.autostart.linux": "Запускати під час входу в систему",
+  "settings.context_menu.linux": "Показувати «Конвертувати в MorphTo» у файловому менеджері",
+  "welcome.tray.mac": "MorphTo чекає в рядку меню й працює повністю офлайн."
 }

@@ -92,5 +92,9 @@
   "format.folder": "폴더 (압축 풀기)",
   "engine.name.resvg": "SVG 렌더러",
   "engine.name.libraw": "RAW 디코더",
-  "engine.name.jxl": "JPEG XL 코덱"
+  "engine.name.jxl": "JPEG XL 코덱",
+  "settings.autostart.mac": "로그인 시 열기",
+  "settings.autostart.linux": "로그인할 때 시작",
+  "settings.context_menu.linux": "파일 관리자에 \"MorphTo로 변환\" 표시",
+  "welcome.tray.mac": "MorphTo는 메뉴 막대에서 대기하며 완전히 오프라인으로 작동합니다."
 }

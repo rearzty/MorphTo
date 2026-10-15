@@ -92,5 +92,9 @@
   "format.folder": "文件夹（解压）",
   "engine.name.resvg": "SVG 渲染器",
   "engine.name.libraw": "RAW 解码器",
-  "engine.name.jxl": "JPEG XL 编解码器"
+  "engine.name.jxl": "JPEG XL 编解码器",
+  "settings.autostart.mac": "登录时打开",
+  "settings.autostart.linux": "登录时启动",
+  "settings.context_menu.linux": "在文件管理器中显示“用 MorphTo 转换”",
+  "welcome.tray.mac": "MorphTo 待在菜单栏中，完全离线工作。"
 }

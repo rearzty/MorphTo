@@ -92,5 +92,9 @@
   "format.folder": "Dossier (extraire)",
   "engine.name.resvg": "moteur de rendu SVG",
   "engine.name.libraw": "décodeur RAW",
-  "engine.name.jxl": "codec JPEG XL"
+  "engine.name.jxl": "codec JPEG XL",
+  "settings.autostart.mac": "Ouvrir à l’ouverture de session",
+  "settings.autostart.linux": "Démarrer à l’ouverture de session",
+  "settings.context_menu.linux": "Afficher « Convertir avec MorphTo » dans le gestionnaire de fichiers",
+  "welcome.tray.mac": "MorphTo attend dans la barre des menus et fonctionne entièrement hors ligne."
 }

@@ -6,14 +6,14 @@
 
 **Press a hotkey, paste, pick a format. Done.**
 
-A fast, lightweight file converter for Windows that lives in the tray.
+A fast, lightweight file converter for Windows, macOS and Linux that lives in the tray.
 Images, audio, video, documents, e-books, data and archives, fully offline.
 
 [**⬇ Download for Windows**](https://github.com/rearzty/MorphTo/releases/latest/download/MorphTo-setup.exe)
-&nbsp;·&nbsp; [Portable zip](https://github.com/rearzty/MorphTo/releases/latest)
+&nbsp;·&nbsp; [macOS, Linux, portable](https://github.com/rearzty/MorphTo/releases/latest)
 &nbsp;·&nbsp; [Русский](README.ru.md)
 
-Windows 10 (1809+) and 11 · 64-bit · ~22 MB download · free and open source (GPL-3.0)
+Windows 10/11 · macOS 11+ · Linux (AppImage) · free and open source (GPL-3.0)
 
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="docs/images/en/done-dark.png">
@@ -97,6 +97,8 @@ You can also install or remove them in Settings → Components, or with `morphto
 
 ## Install
 
+### Windows
+
 Download [`MorphTo-setup.exe`](https://github.com/rearzty/MorphTo/releases/latest/download/MorphTo-setup.exe)
 and run it. No administrator rights are needed: MorphTo installs for your user only, in
 `%LOCALAPPDATA%\Programs\MorphTo`. On first start it shows the hotkey and lets you turn on
@@ -108,6 +110,31 @@ unpack it anywhere and run `MorphTo.exe`.
 > **“Windows protected your PC”?** MorphTo is new and not code-signed yet, so Microsoft SmartScreen warns about it.
 > Click **More info → Run anyway**. Every release lists SHA-256 checksums in `SHA256SUMS.txt`, and the whole
 > build runs on GitHub Actions from the source in this repository.
+
+### macOS
+
+Download `MorphTo-…-macos-arm64.dmg` (Apple Silicon) or `…-macos-x86_64.dmg` (Intel) from the
+[releases page](https://github.com/rearzty/MorphTo/releases/latest), open it and drag MorphTo to Applications.
+MorphTo lives in the menu bar; the hotkey is <kbd>Control</kbd>+<kbd>Option</kbd>+<kbd>C</kbd>.
+
+> **“MorphTo cannot be opened because the developer cannot be verified”?** MorphTo is not notarized by Apple
+> yet. Right-click MorphTo in Applications → **Open** → **Open**. On macOS 15 and later: try to open it once,
+> then System Settings → Privacy & Security → **Open Anyway**.
+
+### Linux
+
+Download `MorphTo-…-x86_64.AppImage` from the [releases page](https://github.com/rearzty/MorphTo/releases/latest),
+make it executable and run it:
+
+```bash
+chmod +x MorphTo-*.AppImage && ./MorphTo-*.AppImage
+```
+
+On first start it adds itself to the application menu. The hotkey is <kbd>Super</kbd>+<kbd>Alt</kbd>+<kbd>C</kbd>.
+On X11 it works everywhere; under Wayland MorphTo registers it as a GNOME keyboard shortcut, on other Wayland
+desktops add a shortcut for the MorphTo command in the system settings. The tray icon needs the AppIndicator
+extension on GNOME. Audio/video, LibreOffice and the other optional components come from your distribution
+(`sudo apt install ffmpeg libreoffice libarchive-tools`); the app tells you when one is missing.
 
 ## Command line
 

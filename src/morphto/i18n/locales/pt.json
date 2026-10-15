@@ -92,5 +92,9 @@
   "format.folder": "Pasta (extrair)",
   "engine.name.resvg": "renderizador SVG",
   "engine.name.libraw": "decodificador RAW",
-  "engine.name.jxl": "codec JPEG XL"
+  "engine.name.jxl": "codec JPEG XL",
+  "settings.autostart.mac": "Abrir ao iniciar sessão",
+  "settings.autostart.linux": "Iniciar ao entrar na sessão",
+  "settings.context_menu.linux": "Mostrar “Converter com MorphTo” no gerenciador de arquivos",
+  "welcome.tray.mac": "O MorphTo fica na barra de menus e funciona totalmente offline."
 }

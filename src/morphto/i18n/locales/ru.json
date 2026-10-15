@@ -92,5 +92,9 @@
   "format.folder": "Папка (распаковать)",
   "engine.name.resvg": "отрисовщик SVG",
   "engine.name.libraw": "декодер RAW",
-  "engine.name.jxl": "кодек JPEG XL"
+  "engine.name.jxl": "кодек JPEG XL",
+  "settings.autostart.mac": "Открывать при входе в систему",
+  "settings.autostart.linux": "Запускать при входе в систему",
+  "settings.context_menu.linux": "Показывать «Конвертировать в MorphTo» в файловом менеджере",
+  "welcome.tray.mac": "MorphTo ждёт в строке меню и работает полностью офлайн."
 }

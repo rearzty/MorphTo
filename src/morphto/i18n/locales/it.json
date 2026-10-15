@@ -92,5 +92,9 @@
   "format.folder": "Cartella (estrai)",
   "engine.name.resvg": "renderer SVG",
   "engine.name.libraw": "decoder RAW",
-  "engine.name.jxl": "codec JPEG XL"
+  "engine.name.jxl": "codec JPEG XL",
+  "settings.autostart.mac": "Apri al login",
+  "settings.autostart.linux": "Avvia all’accesso",
+  "settings.context_menu.linux": "Mostra «Converti con MorphTo» nel file manager",
+  "welcome.tray.mac": "MorphTo aspetta nella barra dei menu e funziona completamente offline."
 }

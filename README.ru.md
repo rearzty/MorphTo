@@ -6,14 +6,14 @@
 
 **Нажал сочетание, вставил, выбрал формат. Готово.**
 
-Быстрый и лёгкий конвертер файлов для Windows, который живёт в трее.
+Быстрый и лёгкий конвертер файлов для Windows, macOS и Linux, который живёт в трее.
 Картинки, аудио, видео, документы, книги, данные и архивы — полностью офлайн.
 
 [**⬇ Скачать для Windows**](https://github.com/rearzty/MorphTo/releases/latest/download/MorphTo-setup.exe)
-&nbsp;·&nbsp; [Portable-архив](https://github.com/rearzty/MorphTo/releases/latest)
+&nbsp;·&nbsp; [macOS, Linux, portable](https://github.com/rearzty/MorphTo/releases/latest)
 &nbsp;·&nbsp; [English](README.md)
 
-Windows 10 (1809+) и 11 · 64 бита · ~22 МБ · бесплатно и с открытым кодом (GPL-3.0)
+Windows 10/11 · macOS 11+ · Linux (AppImage) · бесплатно и с открытым кодом (GPL-3.0)
 
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="docs/images/ru/done-dark.png">
@@ -97,6 +97,8 @@ Word, Excel и PowerPoint в PDF (вёрстка точно как в Office), �
 
 ## Установка
 
+### Windows
+
 Скачайте [`MorphTo-setup.exe`](https://github.com/rearzty/MorphTo/releases/latest/download/MorphTo-setup.exe)
 и запустите. Права администратора не нужны: MorphTo ставится только для вашего пользователя, в
 `%LOCALAPPDATA%\Programs\MorphTo`. При первом запуске он покажет сочетание клавиш и предложит включить
@@ -108,6 +110,31 @@ Word, Excel и PowerPoint в PDF (вёрстка точно как в Office), �
 > **«Система Windows защитила ваш компьютер»?** MorphTo новый и пока не подписан цифровой подписью, поэтому
 > SmartScreen предупреждает о нём. Нажмите **Подробнее → Выполнить в любом случае**. К каждому релизу приложены
 > контрольные суммы SHA-256 (`SHA256SUMS.txt`), а сама сборка выполняется в GitHub Actions из кода этого репозитория.
+
+### macOS
+
+Скачайте `MorphTo-…-macos-arm64.dmg` (Apple Silicon) или `…-macos-x86_64.dmg` (Intel) со
+[страницы релизов](https://github.com/rearzty/MorphTo/releases/latest), откройте и перетащите MorphTo в «Программы».
+MorphTo живёт в строке меню, сочетание клавиш — <kbd>Control</kbd>+<kbd>Option</kbd>+<kbd>C</kbd>.
+
+> **«Не удаётся открыть, так как разработчик не может быть проверен»?** MorphTo пока не заверен Apple.
+> Нажмите на MorphTo в «Программах» правой кнопкой → **Открыть** → **Открыть**. На macOS 15 и новее: попробуйте
+> открыть один раз, затем «Системные настройки → Конфиденциальность и безопасность → **Всё равно открыть**».
+
+### Linux
+
+Скачайте `MorphTo-…-x86_64.AppImage` со [страницы релизов](https://github.com/rearzty/MorphTo/releases/latest),
+сделайте исполняемым и запустите:
+
+```bash
+chmod +x MorphTo-*.AppImage && ./MorphTo-*.AppImage
+```
+
+При первом запуске MorphTo добавит себя в меню приложений. Сочетание клавиш — <kbd>Super</kbd>+<kbd>Alt</kbd>+<kbd>C</kbd>.
+На X11 оно работает везде; в Wayland MorphTo прописывает его как сочетание клавиш GNOME, в остальных окружениях
+Wayland добавьте сочетание для команды MorphTo в системных настройках. Значку в трее в GNOME нужно расширение
+AppIndicator. Аудио/видео, LibreOffice и другие компоненты берутся из дистрибутива
+(`sudo apt install ffmpeg libreoffice libarchive-tools`); если чего-то не хватает, программа подскажет.
 
 ## Командная строка
 

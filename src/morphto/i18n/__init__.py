@@ -87,8 +87,18 @@ def current_language() -> str:
     return _current
 
 
+# Strings that differ per system ("Start with Windows" / "Open at login") have variants: "key.mac", "key.linux".
+_SYSTEM = "mac" if sys.platform == "darwin" else "" if sys.platform == "win32" else "linux"
+
+
 def tr(key: str, **kwargs: object) -> str:
-    text = _catalog(_current).get(key) or _catalog("en").get(key) or key
+    text = None
+    if _SYSTEM:
+        variant = f"{key}.{_SYSTEM}"
+        text = _catalog(_current).get(variant) or _catalog("en").get(variant)
+    text = text or _catalog(_current).get(key) or _catalog("en").get(key) or key
+    if _SYSTEM == "mac":
+        text = text.replace("Ctrl+V", "⌘V").replace("Ctrl+O", "⌘O")
     return text.format(**kwargs) if kwargs else text
 
 

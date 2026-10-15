@@ -92,5 +92,9 @@
   "format.folder": "Klasör (çıkar)",
   "engine.name.resvg": "SVG işleyici",
   "engine.name.libraw": "RAW kod çözücü",
-  "engine.name.jxl": "JPEG XL kodeki"
+  "engine.name.jxl": "JPEG XL kodeki",
+  "settings.autostart.mac": "Oturum açılınca aç",
+  "settings.autostart.linux": "Oturum açılınca başlat",
+  "settings.context_menu.linux": "Dosya yöneticisinde “MorphTo ile dönüştür” göster",
+  "welcome.tray.mac": "MorphTo menü çubuğunda bekler ve tamamen çevrimdışı çalışır."
 }

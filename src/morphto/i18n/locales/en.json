@@ -92,5 +92,9 @@
   "format.folder": "Folder (unpack)",
   "engine.name.resvg": "SVG renderer",
   "engine.name.libraw": "RAW decoder",
-  "engine.name.jxl": "JPEG XL codec"
+  "engine.name.jxl": "JPEG XL codec",
+  "settings.autostart.mac": "Open at login",
+  "settings.autostart.linux": "Start when I log in",
+  "settings.context_menu.linux": "Show “Convert with MorphTo” in the file manager",
+  "welcome.tray.mac": "MorphTo waits in the menu bar and works fully offline."
 }

@@ -92,5 +92,9 @@
   "format.folder": "フォルダー (展開)",
   "engine.name.resvg": "SVG レンダラー",
   "engine.name.libraw": "RAW デコーダー",
-  "engine.name.jxl": "JPEG XL コーデック"
+  "engine.name.jxl": "JPEG XL コーデック",
+  "settings.autostart.mac": "ログイン時に開く",
+  "settings.autostart.linux": "ログイン時に起動",
+  "settings.context_menu.linux": "ファイルマネージャーに「MorphTo で変換」を表示",
+  "welcome.tray.mac": "MorphTo はメニューバーで待機し、完全にオフラインで動作します。"
 }
