@@ -1,4 +1,10 @@
-"""Build the Windows app: dist/MorphTo/ with MorphTo.exe (windowed) and morphto.com (console).
+"""Build the app with PyInstaller for the system it runs on.
+
+- Windows: dist/MorphTo/ with MorphTo.exe (windowed) and morphto.com (console); the installer is made by
+  packaging/installer.iss.
+- Linux:   dist/MorphTo/ and, when appimagetool is available ($APPIMAGETOOL or on PATH),
+  dist/MorphTo-<version>-x86_64.AppImage.
+- macOS:   dist/MorphTo.app (a menu-bar app) and dist/MorphTo-<version>-macos-<arch>.dmg.
 
 Usage:  python packaging/build.py            (needs `pip install pyinstaller`)
 
@@ -10,6 +16,8 @@ Size is kept down by excluding what we never use and pruning Qt files after the 
 from __future__ import annotations
 
 import os
+import platform
+import plistlib
 import shutil
 import subprocess
 import sys
@@ -31,7 +39,7 @@ EXCLUDE_MODULES = [
 ]  # fmt: skip
 
 # Files removed from the bundle after the build (paths relative to the _internal folder).
-PRUNE = [
+PRUNE_WINDOWS = [
     "PySide6/opengl32sw.dll",  # software OpenGL, 20 MB
     "PySide6/Qt6Network.dll",  # IPC uses a plain named pipe
     "PySide6/Qt6Svg.dll",
@@ -43,9 +51,24 @@ PRUNE = [
     "PySide6/plugins/platforms/qminimal.dll",
     "PySide6/plugins/platforms/qoffscreen.dll",
 ]
+# Linux and macOS keep Qt under PySide6/Qt/.
+PRUNE_UNIX = [
+    "PySide6/Qt/translations",
+    "PySide6/Qt/plugins/imageformats",
+    "PySide6/Qt/plugins/iconengines",
+    "PySide6/Qt/plugins/generic",
+    "PySide6/Qt/plugins/platforms/libqminimal.so",
+    "PySide6/Qt/plugins/platforms/libqvnc.so",
+    "PySide6/Qt/plugins/platforms/libqlinuxfb.so",
+    "PySide6/Qt/plugins/platforms/libqvkkhrdisplay.so",
+    "PySide6/Qt/plugins/platforms/libqminimal.dylib",
+    "PySide6/Qt/plugins/platforms/libqoffscreen.dylib",
+]
+PRUNE = PRUNE_WINDOWS if sys.platform == "win32" else PRUNE_UNIX
 
 
 def make_icon() -> Path:
+    """MorphTo.ico on Windows, MorphTo.icns on macOS, MorphTo.png (256 px) on Linux."""
     os.environ.setdefault("QT_QPA_PLATFORM", "offscreen")
     from PIL import Image
     from PySide6.QtCore import QBuffer, QIODevice
@@ -60,10 +83,30 @@ def make_icon() -> Path:
         buf.open(QIODevice.OpenModeFlag.WriteOnly)
         render(size).save(buf, "PNG")
         images.append(Image.open(BytesIO(bytes(buf.data()))).convert("RGBA"))
-    out = BUILD / "MorphTo.ico"
-    out.parent.mkdir(parents=True, exist_ok=True)
-    images[0].save(out, format="ICO", sizes=[im.size for im in images], append_images=images[1:])
+    BUILD.mkdir(parents=True, exist_ok=True)
+    if sys.platform == "win32":
+        out = BUILD / "MorphTo.ico"
+        images[0].save(out, format="ICO", sizes=[im.size for im in images], append_images=images[1:])
+    elif sys.platform == "darwin":
+        out = BUILD / "MorphTo.icns"
+        big = render_png(1024)
+        big.save(out, format="ICNS")
+    else:
+        out = BUILD / "MorphTo.png"
+        images[0].save(out, format="PNG")
     return out
+
+
+def render_png(size: int):
+    from PIL import Image
+    from PySide6.QtCore import QBuffer, QIODevice
+
+    from morphto.gui.icon import render
+
+    buf = QBuffer()
+    buf.open(QIODevice.OpenModeFlag.WriteOnly)
+    render(size).save(buf, "PNG")
+    return Image.open(BytesIO(bytes(buf.data()))).convert("RGBA")
 
 
 def make_version_file() -> Path:
@@ -89,12 +132,15 @@ def make_version_file() -> Path:
     return out
 
 
-def pyinstaller(icon: Path, version: Path) -> Path:
+def pyinstaller(icon: Path, version: Path | None) -> Path:
     work = BUILD / "pyinstaller"
+    extra = ["--version-file", str(version)] if version else []
+    if sys.platform == "darwin":
+        extra += ["--osx-bundle-identifier", "com.rearzty.morphto"]
     cmd = [
         sys.executable, "-m", "PyInstaller", str(ROOT / "packaging" / "entry.py"),
         "--name", APP_NAME, "--onedir", "--windowed", "--noconfirm", "--clean", "--log-level", "WARN",
-        "--icon", str(icon), "--version-file", str(version),
+        "--icon", str(icon), *extra,
         "--distpath", str(work / "dist"), "--workpath", str(work / "work"), "--specpath", str(work),
         "--paths", str(ROOT / "src"), "--collect-data", "morphto",
         # used by the JPEG XL plugin, which is downloaded later and imports it
@@ -102,7 +148,84 @@ def pyinstaller(icon: Path, version: Path) -> Path:
         *[arg for module in EXCLUDE_MODULES for arg in ("--exclude-module", module)],
     ]  # fmt: skip
     subprocess.run(cmd, check=True, cwd=ROOT)
+    if sys.platform == "darwin":
+        return work / "dist" / f"{APP_NAME}.app"
     return work / "dist" / APP_NAME
+
+
+def finish_macos_bundle(app: Path) -> None:
+    """A menu-bar app (no Dock icon), with our version and a usage text for automation prompts."""
+    info_path = app / "Contents" / "Info.plist"
+    with info_path.open("rb") as f:
+        info = plistlib.load(f)
+    info.update(
+        LSUIElement=True,
+        CFBundleName=APP_NAME,
+        CFBundleDisplayName=APP_NAME,
+        CFBundleShortVersionString=__version__,
+        CFBundleVersion=__version__,
+        NSHighResolutionCapable=True,
+        LSMinimumSystemVersion="11.0",
+        NSHumanReadableCopyright="Copyright (C) 2026 rearzty. GPL-3.0-or-later.",
+    )
+    with info_path.open("wb") as f:
+        plistlib.dump(info, f)
+
+
+def make_dmg(app: Path) -> Path:
+    """A disk image with the app and a link to /Applications, to drag it there."""
+    arch = "arm64" if platform.machine() == "arm64" else "x86_64"
+    out = ROOT / "dist" / f"{APP_NAME}-{__version__}-macos-{arch}.dmg"
+    stage = BUILD / "dmg"
+    shutil.rmtree(stage, ignore_errors=True)
+    stage.mkdir(parents=True)
+    subprocess.run(["ditto", str(app), str(stage / app.name)], check=True)
+    (stage / "Applications").symlink_to("/Applications")
+    out.unlink(missing_ok=True)
+    subprocess.run(
+        [
+            "hdiutil",
+            "create",
+            "-volname",
+            APP_NAME,
+            "-srcfolder",
+            str(stage),
+            "-ov",
+            "-format",
+            "UDZO",
+            str(out),
+        ],
+        check=True,
+    )
+    return out
+
+
+def make_appimage(dist: Path, icon: Path) -> Path | None:
+    """dist/MorphTo -> MorphTo-<version>-x86_64.AppImage (needs appimagetool)."""
+    tool = os.environ.get("APPIMAGETOOL") or shutil.which("appimagetool")
+    if not tool:
+        print("! appimagetool not found, skipping the AppImage")
+        return None
+    appdir = BUILD / "MorphTo.AppDir"
+    shutil.rmtree(appdir, ignore_errors=True)
+    shutil.copytree(dist, appdir / "usr" / "lib" / "morphto", symlinks=True)
+    (appdir / "AppRun").write_text(
+        '#!/bin/sh\nHERE="$(dirname "$(readlink -f "$0")")"\nexec "$HERE/usr/lib/morphto/MorphTo" "$@"\n',
+        encoding="utf-8",
+    )
+    (appdir / "AppRun").chmod(0o755)
+    (appdir / "morphto.desktop").write_text(
+        "[Desktop Entry]\nType=Application\nName=MorphTo\nComment=Fast offline file converter\n"
+        "Exec=MorphTo %F\nIcon=morphto\nCategories=Utility;Graphics;AudioVideo;\nTerminal=false\n"
+        "StartupWMClass=MorphTo\n",
+        encoding="utf-8",
+    )
+    shutil.copy(icon, appdir / "morphto.png")
+    arch = platform.machine() or "x86_64"
+    out = ROOT / "dist" / f"{APP_NAME}-{__version__}-{arch}.AppImage"
+    env = {**os.environ, "ARCH": arch}
+    subprocess.run([tool, "--no-appstream", str(appdir), str(out)], check=True, env=env)
+    return out
 
 
 def prune(dist: Path) -> None:
@@ -239,14 +362,35 @@ def release_old_dist() -> None:
 def main() -> None:
     release_old_dist()
     icon = make_icon()
-    dist = pyinstaller(icon, make_version_file())
+    dist = pyinstaller(icon, make_version_file() if sys.platform == "win32" else None)
+    if sys.platform == "darwin":
+        internal = dist / "Contents" / "Frameworks"  # PyInstaller's layout inside a .app
+        for rel in PRUNE:
+            target = internal / rel
+            if target.is_dir():
+                shutil.rmtree(target)
+            elif target.exists():
+                target.unlink()
+        finish_macos_bundle(dist)
+        target = DIST.with_name(f"{APP_NAME}.app")
+        shutil.rmtree(target, ignore_errors=True)
+        shutil.move(str(dist), target)
+        resources = target / "Contents" / "Resources"
+        shutil.copy(ROOT / "LICENSE", resources / "LICENSE.txt")
+        make_notices(resources / "THIRD-PARTY-NOTICES.txt")
+        size_report(target)
+        print(make_dmg(target))
+        return
     prune(dist)
     DIST.parent.mkdir(parents=True, exist_ok=True)
     shutil.move(str(dist), DIST)
-    build_stub(DIST)
+    if sys.platform == "win32":
+        build_stub(DIST)
     shutil.copy(ROOT / "LICENSE", DIST / "LICENSE.txt")
     make_notices(DIST / "THIRD-PARTY-NOTICES.txt")
     size_report(DIST)
+    if sys.platform.startswith("linux"):
+        print(make_appimage(DIST, icon))
 
 
 if __name__ == "__main__":
