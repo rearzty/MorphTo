@@ -13,6 +13,9 @@ class Category(StrEnum):
     DOCUMENT = "document"
     SPREADSHEET = "spreadsheet"
     PRESENTATION = "presentation"
+    DATA = "data"
+    BOOK = "book"
+    ARCHIVE = "archive"
 
 
 @dataclass(frozen=True, slots=True)
@@ -65,6 +68,7 @@ def all_formats() -> list[Format]:
 
 _I, _A, _V, _D = Category.IMAGE, Category.AUDIO, Category.VIDEO, Category.DOCUMENT
 _S, _P = Category.SPREADSHEET, Category.PRESENTATION
+_DATA, _B, _Z = Category.DATA, Category.BOOK, Category.ARCHIVE
 
 for _f in [
     # Images
@@ -81,6 +85,36 @@ for _f in [
     Format("tga", "Targa", _I, ("tga",)),
     Format("jp2", "JPEG 2000", _I, ("jp2", "j2k", "jpf")),
     Format("psd", "Photoshop", _I, ("psd",)),
+    Format("svg", "SVG", _I, ("svg",)),
+    Format("jxl", "JPEG XL", _I, ("jxl",)),
+    Format(
+        "raw",
+        "Camera RAW",
+        _I,
+        (
+            "dng",
+            "cr2",
+            "cr3",
+            "nef",
+            "nrw",
+            "arw",
+            "srf",
+            "sr2",
+            "orf",
+            "rw2",
+            "raf",
+            "pef",
+            "srw",
+            "x3f",
+            "3fr",
+            "erf",
+            "kdc",
+            "mrw",
+            "rwl",
+            "iiq",
+            "raw",
+        ),
+    ),
     # Documents
     Format("pdf", "PDF", _D, ("pdf",)),
     Format("docx", "Word document", _D, ("docx",)),
@@ -88,6 +122,8 @@ for _f in [
     Format("odt", "OpenDocument text", _D, ("odt",)),
     Format("rtf", "Rich Text", _D, ("rtf",)),
     Format("txt", "Plain text", _D, ("txt",)),
+    Format("md", "Markdown", _D, ("md", "markdown")),
+    Format("html", "HTML", _D, ("html", "htm", "xhtml")),
     # Spreadsheets
     Format("xlsx", "Excel workbook", _S, ("xlsx",)),
     Format("xls", "Excel 97–2003", _S, ("xls",)),
@@ -97,6 +133,20 @@ for _f in [
     Format("pptx", "PowerPoint", _P, ("pptx",)),
     Format("ppt", "PowerPoint 97–2003", _P, ("ppt",)),
     Format("odp", "OpenDocument presentation", _P, ("odp",)),
+    # Data
+    Format("json", "JSON", _DATA, ("json",)),
+    Format("yaml", "YAML", _DATA, ("yaml", "yml")),
+    Format("xml", "XML", _DATA, ("xml",)),
+    # Books
+    Format("epub", "EPUB", _B, ("epub",)),
+    Format("fb2", "FictionBook", _B, ("fb2",)),
+    # Archives ("folder" is the target for unpacking: the result is a folder, the extension is dropped)
+    Format("zip", "ZIP", _Z, ("zip",)),
+    Format("7z", "7-Zip", _Z, ("7z",)),
+    Format("tar", "TAR", _Z, ("tar",)),
+    Format("tgz", "TAR.GZ", _Z, ("tgz", "gz")),
+    Format("rar", "RAR", _Z, ("rar",)),
+    Format("folder", "Folder (unpack)", _Z, ("folder",)),
     # Audio
     Format("mp3", "MP3", _A, ("mp3",)),
     Format("wav", "WAV", _A, ("wav",)),
@@ -107,6 +157,7 @@ for _f in [
     Format("aac", "AAC", _A, ("aac",)),
     Format("wma", "Windows Media Audio", _A, ("wma",)),
     Format("aiff", "AIFF", _A, ("aiff", "aif")),
+    Format("m4r", "iPhone ringtone", _A, ("m4r",)),
     # Video
     Format("mp4", "MP4 (H.264)", _V, ("mp4", "m4v")),
     Format("mkv", "Matroska", _V, ("mkv",)),

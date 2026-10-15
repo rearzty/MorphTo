@@ -86,5 +86,7 @@
   "update.latest": "Masz najnowszą wersję ({version}).",
   "update.check_failed": "Nie udało się sprawdzić aktualizacji: {error}",
   "tray.check_updates": "Sprawdź aktualizacje",
-  "settings.check_updates": "Sprawdzaj nowe wersje (raz dziennie, na GitHubie)"
+  "settings.check_updates": "Sprawdzaj nowe wersje (raz dziennie, na GitHubie)",
+  "popup.clipboard_busy": "Schowek jest używany przez inny program. Spróbuj ponownie.",
+  "popup.clipboard_unreadable": "Nie można odczytać obrazu ze schowka. Skopiuj go ponownie lub zapisz jako plik."
 }

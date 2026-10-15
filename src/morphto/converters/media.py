@@ -14,7 +14,7 @@ from morphto.core.formats import Format
 from morphto.core.options import Options
 from morphto.core.registry import CancelledError, Context, ConversionError, Converter
 
-AUDIO = {"mp3", "wav", "flac", "ogg", "opus", "m4a", "aac", "wma", "aiff"}
+AUDIO = {"mp3", "wav", "flac", "ogg", "opus", "m4a", "aac", "wma", "aiff", "m4r"}
 VIDEO_IN = {"mp4", "mkv", "webm", "mov", "avi", "wmv", "flv", "mpeg", "ts", "3gp", "ogv", "gif"}
 VIDEO_OUT = {"mp4", "mkv", "webm", "mov", "avi", "wmv", "flv", "gif"}
 
@@ -28,11 +28,14 @@ _AUDIO_CODEC = {
     "aac": ["-c:a", "aac", "-b:a", "192k"],
     "wma": ["-c:a", "wmav2", "-b:a", "192k"],
     "aiff": ["-c:a", "pcm_s16be"],
+    # iPhone ringtone: AAC in an iPod MP4 container; iOS refuses ringtones longer than 40 s.
+    "m4r": ["-c:a", "aac", "-b:a", "256k", "-t", "40", "-f", "ipod"],
 }
 _LOSSLESS_AUDIO = {"wav", "flac", "aiff"}
 # Audio codecs that can be stream-copied into the given audio container without re-encoding.
 _AUDIO_COPY = {
     "m4a": {"aac", "alac"},
+    "m4r": {"aac"},
     "aac": {"aac"},
     "mp3": {"mp3"},
     "opus": {"opus"},
@@ -65,6 +68,8 @@ _REMUX_AUDIO = {
     "mov": {"aac", "mp3", "ac3", "alac"},
     "mkv": None,
 }
+
+_RINGTONE_LIMIT = {"m4r": ["-t", "40", "-f", "ipod"]}
 
 _GIF_FPS = 12
 _GIF_WIDTH = 480
@@ -154,7 +159,7 @@ def build_attempts(target: str, options: Options, info: Probe) -> list[list[str]
     attempts: list[list[str]] = []
     if target in AUDIO:
         if plain and info.audio_codec in _AUDIO_COPY.get(target, set()):
-            attempts.append(["-vn", "-sn", "-c:a", "copy"])
+            attempts.append(["-vn", "-sn", "-c:a", "copy", *_RINGTONE_LIMIT.get(target, [])])
         attempts.append(["-vn", "-sn", *_audio_args(target, options)])
         return attempts
     if info.video_codec is None:

@@ -86,5 +86,7 @@
   "update.latest": "Tienes la última versión ({version}).",
   "update.check_failed": "No se pudieron buscar actualizaciones: {error}",
   "tray.check_updates": "Buscar actualizaciones",
-  "settings.check_updates": "Buscar nuevas versiones (una vez al día, en GitHub)"
+  "settings.check_updates": "Buscar nuevas versiones (una vez al día, en GitHub)",
+  "popup.clipboard_busy": "Otro programa está usando el portapapeles. Inténtalo de nuevo.",
+  "popup.clipboard_unreadable": "No se puede leer la imagen del portapapeles. Cópiala de nuevo o guárdala como archivo."
 }

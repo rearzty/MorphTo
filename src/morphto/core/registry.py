@@ -62,6 +62,12 @@ class Step:
     converter: Converter
 
 
+# Formats a chain never passes through: plain text keeps only the words, so DOCX -> TXT -> MD would
+# silently drop headings, lists and images that DOCX -> HTML -> MD keeps. E-books made from a PDF hold
+# only its text, so PDF -> EPUB -> DOCX would pass for a "PDF to Word" converter.
+NOT_VIA = frozenset({"txt", "epub", "fb2"})
+
+
 class Registry:
     def __init__(self) -> None:
         self._converters: list[Converter] = []
@@ -92,7 +98,7 @@ class Registry:
             if cost > best.get(node, cost):
                 continue
             for step in self._edges.get(node, []):
-                if step.dst == node:
+                if step.dst == node or (step.dst in NOT_VIA and step.dst != dst):
                     continue
                 new_cost = cost + step.converter.cost
                 if new_cost < best.get(step.dst, new_cost + 1):

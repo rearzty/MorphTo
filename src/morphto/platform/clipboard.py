@@ -204,6 +204,13 @@ def _dib_to_image(dib: bytes) -> Image.Image | None:
     header_size = int.from_bytes(dib[0:4], "little")
     bit_count = int.from_bytes(dib[14:16], "little")
     compression = int.from_bytes(dib[16:20], "little")
+    if compression in (4, 5):  # BI_JPEG / BI_PNG: a whole JPEG or PNG file follows the header
+        try:
+            image = Image.open(io.BytesIO(dib[header_size:]))
+            image.load()
+            return image
+        except OSError:
+            return None
     colors_used = int.from_bytes(dib[32:36], "little")
     masks = 12 if compression == 3 and header_size == 40 else 0  # BI_BITFIELDS after a v1 header
     palette = (colors_used or (1 << bit_count if bit_count <= 8 else 0)) * 4

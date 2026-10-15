@@ -36,8 +36,8 @@ def test_detect_office_zip_by_content(tmp_path, names, mimetype, expected):
     assert detect(_zip(tmp_path / "file.zip", names, mimetype)).id == expected
 
 
-def test_detect_plain_zip_is_not_a_document(tmp_path):
-    assert detect(_zip(tmp_path / "file.zip", ["readme.md"])) is None
+def test_detect_plain_zip_is_an_archive(tmp_path):
+    assert detect(_zip(tmp_path / "file.docx", ["readme.md"])).id == "zip"
 
 
 def test_sniff_rtf_and_ole():

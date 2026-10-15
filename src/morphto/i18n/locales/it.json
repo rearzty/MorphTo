@@ -86,5 +86,7 @@
   "update.latest": "Hai l'ultima versione ({version}).",
   "update.check_failed": "Impossibile cercare aggiornamenti: {error}",
   "tray.check_updates": "Cerca aggiornamenti",
-  "settings.check_updates": "Cerca nuove versioni (una volta al giorno, su GitHub)"
+  "settings.check_updates": "Cerca nuove versioni (una volta al giorno, su GitHub)",
+  "popup.clipboard_busy": "Gli appunti sono usati da un altro programma. Riprova.",
+  "popup.clipboard_unreadable": "Impossibile leggere l'immagine dagli appunti. Copiala di nuovo o salvala come file."
 }

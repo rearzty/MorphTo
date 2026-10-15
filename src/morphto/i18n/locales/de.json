@@ -86,5 +86,7 @@
   "update.latest": "Sie haben die neueste Version ({version}).",
   "update.check_failed": "Suche nach Updates fehlgeschlagen: {error}",
   "tray.check_updates": "Nach Updates suchen",
-  "settings.check_updates": "Nach neuen Versionen suchen (einmal täglich, auf GitHub)"
+  "settings.check_updates": "Nach neuen Versionen suchen (einmal täglich, auf GitHub)",
+  "popup.clipboard_busy": "Die Zwischenablage wird von einem anderen Programm verwendet. Bitte erneut versuchen.",
+  "popup.clipboard_unreadable": "Das Bild in der Zwischenablage kann nicht gelesen werden. Kopieren Sie es erneut oder speichern Sie es als Datei."
 }

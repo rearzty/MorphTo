@@ -86,5 +86,7 @@
   "update.latest": "You have the latest version ({version}).",
   "update.check_failed": "Could not check for updates: {error}",
   "tray.check_updates": "Check for updates",
-  "settings.check_updates": "Check for new versions (once a day, on GitHub)"
+  "settings.check_updates": "Check for new versions (once a day, on GitHub)",
+  "popup.clipboard_busy": "The clipboard is busy with another program. Try again.",
+  "popup.clipboard_unreadable": "Cannot read the image from the clipboard. Copy it again or save it as a file."
 }

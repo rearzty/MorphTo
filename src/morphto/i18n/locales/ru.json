@@ -86,5 +86,7 @@
   "update.latest": "У вас последняя версия ({version}).",
   "update.check_failed": "Не удалось проверить обновления: {error}",
   "tray.check_updates": "Проверить обновления",
-  "settings.check_updates": "Проверять новые версии (раз в день, на GitHub)"
+  "settings.check_updates": "Проверять новые версии (раз в день, на GitHub)",
+  "popup.clipboard_busy": "Буфер обмена занят другой программой. Попробуйте ещё раз.",
+  "popup.clipboard_unreadable": "Не удалось прочитать картинку из буфера. Скопируйте её ещё раз или сохраните в файл."
 }

@@ -59,12 +59,18 @@ Name: "japanese"; MessagesFile: "compiler:Languages\Japanese.isl"
 AddToPath=Add the "morphto" command to PATH (for the command line)
 Autostart=Start MorphTo with Windows (recommended: the hotkey works right away)
 RemoveData=Also delete MorphTo settings and downloaded components (FFmpeg, HEIC encoder, LibreOffice)?
+UpdateCaption=Update MorphTo %1 → %2
+UpdateNote=MorphTo %1 is installed and will be updated to %2. Your settings and components are kept.
 russian.AddToPath=Добавить команду "morphto" в PATH (для командной строки)
 russian.Autostart=Запускать MorphTo вместе с Windows (рекомендуется: сочетание клавиш работает сразу)
 russian.RemoveData=Удалить также настройки MorphTo и загруженные компоненты (FFmpeg, кодировщик HEIC, LibreOffice)?
+russian.UpdateCaption=Обновление MorphTo %1 → %2
+russian.UpdateNote=Установлена MorphTo %1, она будет обновлена до %2. Настройки и компоненты сохранятся.
 ukrainian.AddToPath=Додати команду "morphto" до PATH (для командного рядка)
 ukrainian.Autostart=Запускати MorphTo разом з Windows (рекомендовано: сполучення клавіш працює одразу)
 ukrainian.RemoveData=Видалити також налаштування MorphTo та завантажені компоненти (FFmpeg, кодувальник HEIC, LibreOffice)?
+ukrainian.UpdateCaption=Оновлення MorphTo %1 → %2
+ukrainian.UpdateNote=Встановлено MorphTo %1, її буде оновлено до %2. Налаштування та компоненти збережуться.
 
 [Tasks]
 Name: "autostart"; Description: "{cm:Autostart}"
@@ -94,6 +100,36 @@ Filename: "{app}\{#AppExe}"; Parameters: "--cleanup"; Flags: runhidden waituntil
 [Code]
 const
   EnvKey = 'Environment';
+  UninstallKey = 'Software\Microsoft\Windows\CurrentVersion\Uninstall\{6E3D2C4A-1F7B-4C9E-9B57-4D2A8C1E7F30}_is1';
+
+var
+  PrevVersion: string;  // version already installed, '' on a fresh install
+
+function InitializeSetup: Boolean;
+begin
+  PrevVersion := '';
+  if not RegQueryStringValue(HKCU, UninstallKey, 'DisplayVersion', PrevVersion) then
+    RegQueryStringValue(HKLM, UninstallKey, 'DisplayVersion', PrevVersion);
+  Result := True;
+end;
+
+procedure InitializeWizard;
+begin
+  if PrevVersion <> '' then
+    WizardForm.Caption := FmtMessage(CustomMessage('UpdateCaption'), [PrevVersion, '{#AppVersion}']);
+end;
+
+function ShouldSkipPage(PageID: Integer): Boolean;
+begin
+  Result := (PrevVersion <> '') and (PageID = wpLicense);  // already accepted at the first install
+end;
+
+procedure CurPageChanged(CurPageID: Integer);
+begin
+  if (PrevVersion <> '') and ((CurPageID = wpSelectTasks) or (CurPageID = wpReady)) then
+    WizardForm.PageDescriptionLabel.Caption :=
+      FmtMessage(CustomMessage('UpdateNote'), [PrevVersion, '{#AppVersion}']);
+end;
 
 function IsAppUpdate: Boolean;
 begin

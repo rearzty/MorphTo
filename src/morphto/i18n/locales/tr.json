@@ -86,5 +86,7 @@
   "update.latest": "En son sürümü kullanıyorsunuz ({version}).",
   "update.check_failed": "Güncellemeler denetlenemedi: {error}",
   "tray.check_updates": "Güncellemeleri denetle",
-  "settings.check_updates": "Yeni sürümleri denetle (günde bir kez, GitHub'da)"
+  "settings.check_updates": "Yeni sürümleri denetle (günde bir kez, GitHub'da)",
+  "popup.clipboard_busy": "Pano başka bir program tarafından kullanılıyor. Yeniden deneyin.",
+  "popup.clipboard_unreadable": "Panodaki görüntü okunamadı. Yeniden kopyalayın veya dosya olarak kaydedin."
 }

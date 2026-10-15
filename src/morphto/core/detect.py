@@ -30,8 +30,31 @@ def detect(path: str | Path) -> Format | None:
     return fmt
 
 
+_RAW_EXTS = {
+    "dng", "cr2", "cr3", "nef", "nrw", "arw", "srf", "sr2", "orf", "rw2", "raf", "pef", "srw", "x3f",
+    "3fr", "erf", "kdc", "mrw", "rwl", "iiq", "raw",
+}  # fmt: skip
+_TEXT_EXTS = {"md", "markdown", "txt", "csv", "json", "yaml", "yml"}
+
+
 def sniff(head: bytes, ext: str = "") -> str | None:
     """Guess a format id from the first bytes of a file."""
+    if ext in _RAW_EXTS and not head.startswith((b"\xff\xd8\xff", b"\x89PNG")):
+        return "raw"  # camera RAW files are mostly TIFF inside, so the extension decides
+    if head.startswith(b"\xff\x0a") or head.startswith(b"\x00\x00\x00\x0cJXL \r\n\x87\n"):
+        return "jxl"
+    if head.startswith(b"7z\xbc\xaf\x27\x1c"):
+        return "7z"
+    if head.startswith(b"Rar!\x1a\x07"):
+        return "rar"
+    if head[257:262] == b"ustar":
+        return "tar"
+    if head.startswith(b"\x1f\x8b") and ext in ("tgz", "gz"):
+        return "tgz"
+    if ext not in _TEXT_EXTS:
+        markup = _sniff_markup(head, ext)
+        if markup:
+            return markup
     if head.startswith(b"\x89PNG\r\n\x1a\n"):
         return "png"
     if head.startswith(b"\xff\xd8\xff"):
@@ -91,10 +114,28 @@ def sniff(head: bytes, ext: str = "") -> str | None:
     return None
 
 
+def _sniff_markup(head: bytes, ext: str) -> str | None:
+    """XML-based files: SVG, FictionBook, (X)HTML, other XML."""
+    text = head.lstrip(b"\xef\xbb\xbf \t\r\n")
+    if not text.startswith(b"<"):
+        return None
+    lower = text[:512].lower()
+    if b"<svg" in lower:
+        return "svg"
+    if b"<fictionbook" in lower:
+        return "fb2"
+    if lower.startswith((b"<!doctype html", b"<html")) or b"<html" in lower:
+        return "html"
+    if text.startswith(b"<?xml"):
+        return ext if ext in ("svg", "fb2", "html", "xhtml") else "xml"
+    return None
+
+
 _ODF_MIMETYPES = {
     b"application/vnd.oasis.opendocument.text": "odt",
     b"application/vnd.oasis.opendocument.spreadsheet": "ods",
     b"application/vnd.oasis.opendocument.presentation": "odp",
+    b"application/epub+zip": "epub",
 }
 _OOXML_PARTS = {"word/document.xml": "docx", "xl/workbook.xml": "xlsx", "ppt/presentation.xml": "pptx"}
 
@@ -115,7 +156,7 @@ def _sniff_zip(path: Path, ext: str) -> str | None:
                     return fmt
     except (OSError, zipfile.BadZipFile, KeyError):
         return None
-    return None  # some other ZIP (archives are not supported yet)
+    return "zip"  # any other ZIP is an archive
 
 
 def _sniff_isobmff(head: bytes, ext: str) -> str:
@@ -128,6 +169,8 @@ def _sniff_isobmff(head: bytes, ext: str) -> str:
         return "heic"
     if major in (b"M4A ", b"M4B "):
         return "m4a"
+    if major == b"crx ":
+        return "raw"  # Canon CR3
     if major == b"qt  ":
         return "mov"
     if major in _3GP_BRANDS:

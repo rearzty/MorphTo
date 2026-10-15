@@ -827,17 +827,43 @@ class Popup(QWidget):
         try:
             content = clipboard.read()
         except clipboard.ClipboardBusy:
-            return False
+            self._set_status("error", tr("popup.clipboard_busy"))
+            return True
+        except Exception:
+            content = None
         if content is None:
-            return False
+            info = clipboard.peek()
+            if info is None or info.kind != "image":
+                return False  # plain text: the search box takes it
+            content = self._qt_clipboard_image()  # a format our reader does not know: let Qt try
+            if content is None:
+                self._set_status("error", tr("popup.clipboard_unreadable"))
+                return True
         self.reset()
         if isinstance(content, Image.Image):
             path = Path(self._tmp.name) / time.strftime("clipboard-%Y%m%d-%H%M%S.png")
-            content.save(path, "PNG", compress_level=1)
+            try:
+                if content.mode not in ("RGB", "RGBA", "L", "LA", "P", "I", "I;16", "1"):
+                    content = content.convert("RGBA" if "A" in content.getbands() else "RGB")
+                content.save(path, "PNG", compress_level=1)
+            except (OSError, ValueError):
+                self._set_status("error", tr("popup.clipboard_unreadable"))
+                return True
             self.load_paths([path], from_clipboard=True)
         else:
             self.load_paths(content)
         return True
+
+    @staticmethod
+    def _qt_clipboard_image() -> Image.Image | None:
+        qimage = QApplication.clipboard().image()
+        if qimage.isNull():
+            return None
+        qimage = qimage.convertToFormat(QImage.Format.Format_RGBA8888)
+        data = bytes(qimage.constBits())[: qimage.sizeInBytes()]
+        return Image.frombuffer(
+            "RGBA", (qimage.width(), qimage.height()), data, "raw", "RGBA", qimage.bytesPerLine(), 1
+        ).copy()
 
     def browse(self) -> None:
         if self.busy():
@@ -883,7 +909,7 @@ class Popup(QWidget):
 
     def eventFilter(self, obj, event) -> bool:
         if obj is self.search and event.type() in (QEvent.Type.KeyPress, QEvent.Type.ShortcutOverride):
-            if event.matches(QKeySequence.StandardKey.Paste):
+            if event.matches(QKeySequence.StandardKey.Paste) or _is_ctrl_key(event, VK_V):
                 if event.type() == QEvent.Type.ShortcutOverride:
                     if clipboard.has_content():
                         event.accept()
@@ -926,7 +952,9 @@ class Popup(QWidget):
             elif not self.items:
                 self.paste()
             return True
-        if key == Qt.Key.Key_O and event.modifiers() & Qt.KeyboardModifier.ControlModifier:
+        if (key == Qt.Key.Key_O and event.modifiers() & Qt.KeyboardModifier.ControlModifier) or _is_ctrl_key(
+            event, VK_O
+        ):
             self.browse()
             return True
         return False
@@ -1106,6 +1134,19 @@ class Popup(QWidget):
             self.start(target)
         else:
             self._set_status("idle")
+
+
+VK_V, VK_O = 0x56, 0x4F
+
+
+def _is_ctrl_key(event, vk: int) -> bool:
+    """Ctrl + the physical key, whatever the keyboard layout (Ctrl+V is Ctrl+М on a Russian keyboard)."""
+    mods = event.modifiers()
+    return bool(
+        mods & Qt.KeyboardModifier.ControlModifier
+        and not mods & (Qt.KeyboardModifier.AltModifier | Qt.KeyboardModifier.MetaModifier)
+        and event.nativeVirtualKey() == vk
+    )
 
 
 def _matches(t: Target, query: str) -> bool:

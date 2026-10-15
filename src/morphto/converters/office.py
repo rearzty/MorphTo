@@ -29,6 +29,8 @@ _FILTERS = {
     "writer": {
         "pdf": "pdf:writer_pdf_Export", "docx": "docx:MS Word 2007 XML", "doc": "doc:MS Word 97",
         "odt": "odt:writer8", "rtf": "rtf:Rich Text Format", "txt": "txt:Text (encoded):UTF8",
+        # images embedded as data: URIs; from here our own converter makes EPUB, FB2, Markdown
+        "html": "html:XHTML Writer File:UTF8",
     },
     "calc": {
         "pdf": "pdf:calc_pdf_Export", "xlsx": "xlsx:Calc Office Open XML", "xls": "xls:MS Excel 97",

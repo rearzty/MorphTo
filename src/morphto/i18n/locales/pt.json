@@ -86,5 +86,7 @@
   "update.latest": "Você tem a versão mais recente ({version}).",
   "update.check_failed": "Não foi possível verificar atualizações: {error}",
   "tray.check_updates": "Verificar atualizações",
-  "settings.check_updates": "Verificar novas versões (uma vez por dia, no GitHub)"
+  "settings.check_updates": "Verificar novas versões (uma vez por dia, no GitHub)",
+  "popup.clipboard_busy": "A área de transferência está em uso por outro programa. Tente novamente.",
+  "popup.clipboard_unreadable": "Não foi possível ler a imagem da área de transferência. Copie-a novamente ou salve como arquivo."
 }

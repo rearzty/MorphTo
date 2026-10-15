@@ -86,5 +86,7 @@
   "update.latest": "已是最新版本（{version}）。",
   "update.check_failed": "无法检查更新：{error}",
   "tray.check_updates": "检查更新",
-  "settings.check_updates": "检查新版本（每天一次，来自 GitHub）"
+  "settings.check_updates": "检查新版本（每天一次，来自 GitHub）",
+  "popup.clipboard_busy": "剪贴板正被其他程序占用，请重试。",
+  "popup.clipboard_unreadable": "无法读取剪贴板中的图片。请重新复制或保存为文件。"
 }

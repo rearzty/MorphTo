@@ -26,6 +26,8 @@ dependencies = [
     "pillow>=11.3",
     "pi-heif>=1.0",
     "pypdfium2>=4.30",
+    "markdown-it-py>=3",
+    "pyyaml>=6",
     "PySide6-Essentials>=6.8",
 ]
 

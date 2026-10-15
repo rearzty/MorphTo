@@ -54,11 +54,13 @@ def _sensible_path(src_fmt: Format, dst_fmt: Format, path: list[Step]) -> bool:
     if "txt" in between:
         return False
     # Changing category (image -> video, video -> image ...) only through a direct converter, or from an
-    # office file through PDF (slides -> PDF -> PNG pages). Otherwise we'd produce nonsense like
-    # PNG -> one-frame GIF -> MP4, or PNG -> PDF -> TXT (an empty text file: there is no OCR).
+    # office file through PDF or HTML (slides -> PDF -> PNG pages, DOCX -> HTML -> EPUB). Otherwise we'd
+    # produce nonsense like PNG -> one-frame GIF -> MP4, or PNG -> PDF -> TXT (empty: there is no OCR).
+    if dst_fmt.category == Category.BOOK and "pdf" in between:
+        return False  # a book from a PDF gets only its text: worth it for a PDF, not for a spreadsheet
     if dst_fmt.category == src_fmt.category or not between:
         return True
-    return src_fmt.category in _OFFICE and all(fmt == "pdf" for fmt in between)
+    return src_fmt.category in _OFFICE and all(fmt in ("pdf", "html") for fmt in between)
 
 
 def required_engines(steps: list[Step]) -> list[str]:
