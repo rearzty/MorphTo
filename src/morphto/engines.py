@@ -443,6 +443,31 @@ class WheelEngine:
                 shutil.rmtree(self.install_dir)
 
 
+# Package names for "brew install ..." / "apt install ..." when an engine cannot be downloaded here.
+_PACKAGES = {"ffmpeg": "ffmpeg", "libreoffice": "libreoffice", "resvg": "resvg", "libraw": "libraw"}
+
+
+def install_command(engine_id: str) -> str | None:
+    """The shell command that installs an engine on this system, if MorphTo cannot download it itself."""
+    engine = get(engine_id)
+    if can_download(engine):
+        return None
+    package = _PACKAGES.get(engine_id, engine_id)
+    if sys.platform == "darwin":
+        return f"brew install {'--cask libreoffice' if package == 'libreoffice' else package}"
+    if engine_id == "libraw":
+        package = "libraw-bin"
+    return f"sudo apt install {package}"
+
+
+def can_download(engine) -> bool:
+    if isinstance(engine, Engine):
+        return bool(engine.archives)
+    if isinstance(engine, OfficeEngine):
+        return sys.platform == "win32"
+    return True  # wheels exist for every system
+
+
 def _system_package_hint(name: str, package: str) -> str:
     if sys.platform == "darwin":
         return f"{name} is not installed. Install it with Homebrew: brew install {package}"

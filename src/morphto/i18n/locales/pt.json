@@ -96,5 +96,6 @@
   "settings.autostart.mac": "Abrir ao iniciar sessão",
   "settings.autostart.linux": "Iniciar ao entrar na sessão",
   "settings.context_menu.linux": "Mostrar “Converter com MorphTo” no gerenciador de arquivos",
-  "welcome.tray.mac": "O MorphTo fica na barra de menus e funciona totalmente offline."
+  "welcome.tray.mac": "O MorphTo fica na barra de menus e funciona totalmente offline.",
+  "engine.needed_system": "Esta conversão precisa de {engine}. Instale e tente novamente: {command}"
 }

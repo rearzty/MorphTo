@@ -1,5 +1,23 @@
 # Changelog
 
+## [0.4.0] - 2026-10-16
+
+MorphTo for macOS and Linux.
+
+### Added
+- macOS (11 and later, Apple Silicon and Intel): a menu-bar app in a `.dmg`. The hotkey is Control+Option+C,
+  registered without asking for accessibility permissions; "Open at login".
+- Linux: one AppImage for any distribution. The hotkey (Super+Alt+C) works on X11 and, under Wayland, as a GNOME
+  keyboard shortcut; "Convert with MorphTo" in Nautilus, Nemo and Dolphin; start at login; an application
+  menu entry. The AppImage updates itself like the Windows version.
+- PDF from Markdown, HTML and e-books through any Chromium-based browser (Edge, Chrome, Chromium, Brave).
+- Releases ship Windows, macOS and Linux builds with one SHA256SUMS.txt.
+
+### Notes
+- On macOS and Linux, FFmpeg, LibreOffice and the other optional components come from Homebrew or the system
+  package manager; MorphTo says which command installs a missing one.
+- The macOS build is not notarized by Apple yet: open it with right-click → Open the first time.
+
 ## [0.3.0] - 2026-10-15
 
 E-books, Markdown, data, archives, SVG, camera RAW and JPEG XL.

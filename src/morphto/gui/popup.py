@@ -974,6 +974,12 @@ class Popup(QWidget):
         if missing:
             self.pending_target = target
             engine = engines.get(missing[0])
+            command = engines.install_command(missing[0])
+            if command:  # macOS / Linux: the program comes from Homebrew or the package manager
+                self._set_status(
+                    "error", tr("engine.needed_system", engine=engine_name(engine), command=command)
+                )
+                return
             self._set_status(
                 "engine",
                 tr("engine.needed", engine=engine_name(engine), size=engine.size_mb),

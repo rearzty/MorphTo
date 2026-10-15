@@ -96,5 +96,6 @@
   "settings.autostart.mac": "Oturum açılınca aç",
   "settings.autostart.linux": "Oturum açılınca başlat",
   "settings.context_menu.linux": "Dosya yöneticisinde “MorphTo ile dönüştür” göster",
-  "welcome.tray.mac": "MorphTo menü çubuğunda bekler ve tamamen çevrimdışı çalışır."
+  "welcome.tray.mac": "MorphTo menü çubuğunda bekler ve tamamen çevrimdışı çalışır.",
+  "engine.needed_system": "Bu dönüştürme için {engine} gerekli. Kurup yeniden deneyin: {command}"
 }

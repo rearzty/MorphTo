@@ -96,5 +96,6 @@
   "settings.autostart.mac": "ログイン時に開く",
   "settings.autostart.linux": "ログイン時に起動",
   "settings.context_menu.linux": "ファイルマネージャーに「MorphTo で変換」を表示",
-  "welcome.tray.mac": "MorphTo はメニューバーで待機し、完全にオフラインで動作します。"
+  "welcome.tray.mac": "MorphTo はメニューバーで待機し、完全にオフラインで動作します。",
+  "engine.needed_system": "この変換には {engine} が必要です。インストールしてからもう一度お試しください: {command}"
 }

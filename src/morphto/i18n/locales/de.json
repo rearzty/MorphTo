@@ -96,5 +96,6 @@
   "settings.autostart.mac": "Bei der Anmeldung öffnen",
   "settings.autostart.linux": "Bei der Anmeldung starten",
   "settings.context_menu.linux": "„Mit MorphTo umwandeln“ im Dateimanager anzeigen",
-  "welcome.tray.mac": "MorphTo wartet in der Menüleiste und arbeitet komplett offline."
+  "welcome.tray.mac": "MorphTo wartet in der Menüleiste und arbeitet komplett offline.",
+  "engine.needed_system": "Für diese Umwandlung wird {engine} benötigt. Installieren und erneut versuchen: {command}"
 }
