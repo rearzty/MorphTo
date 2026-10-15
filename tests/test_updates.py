@@ -28,7 +28,7 @@ def _release_json(version="0.3.0"):
         "html_url": f"https://github.com/rearzty/MorphTo/releases/tag/v{version}",
         "assets": [
             {"name": name, "browser_download_url": f"{base}/{name}"}
-            for name in ("MorphTo-setup.exe", f"MorphTo-{version}-setup.exe", "SHA256SUMS.txt")
+            for name in ("MorphTo-setup.exe", updates.package_name(version), "SHA256SUMS.txt")
         ],
     }
 
@@ -36,14 +36,14 @@ def _release_json(version="0.3.0"):
 def test_parse_release_picks_versioned_installer():
     release = updates.parse_release(_release_json())
     assert release.version == "0.3.0"
-    assert release.setup_name == "MorphTo-0.3.0-setup.exe"
-    assert release.setup_url.endswith("/v0.3.0/MorphTo-0.3.0-setup.exe")
+    assert release.setup_name == updates.package_name("0.3.0")
+    assert release.setup_url.endswith(f"/v0.3.0/{updates.package_name('0.3.0')}")
     assert release.sums_url.endswith("/SHA256SUMS.txt")
 
 
 def _fake_network(monkeypatch, payload: bytes, listed_hash: str):
     def fetch(url):
-        return f"{listed_hash}  MorphTo-0.3.0-setup.exe\nabc  MorphTo-0.3.0-portable.zip\n"
+        return f"{listed_hash}  {updates.package_name('0.3.0')}\nabc  MorphTo-0.3.0-portable.zip\n"
 
     def download(url, dest, progress, cancel):
         dest.write_bytes(payload)
@@ -59,7 +59,7 @@ def test_download_installer_verifies_checksum(monkeypatch):
     path = updates.download_installer(
         updates.parse_release(_release_json()), lambda f: None, threading.Event()
     )
-    assert path.name == "MorphTo-0.3.0-setup.exe" and path.read_bytes() == payload
+    assert path.name == updates.package_name("0.3.0") and path.read_bytes() == payload
 
 
 def test_download_installer_rejects_bad_checksum(monkeypatch):

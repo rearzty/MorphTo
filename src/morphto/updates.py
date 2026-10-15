@@ -9,6 +9,7 @@ from __future__ import annotations
 
 import json
 import os
+import platform
 import re
 import subprocess
 import sys
@@ -33,9 +34,18 @@ class UpdateError(Exception):
 class Release:
     version: str  # "0.3.0"
     page_url: str
-    setup_url: str | None  # versioned installer asset
+    setup_url: str | None  # the package for this system: Windows installer or Linux AppImage
     setup_name: str | None
     sums_url: str | None  # SHA256SUMS.txt
+
+
+def package_name(version: str) -> str:
+    """Release asset this system updates from (macOS updates from the download page, by hand)."""
+    if sys.platform == "win32":
+        return f"MorphTo-{version}-setup.exe"
+    if sys.platform == "darwin":
+        return f"MorphTo-{version}-macos-{'arm64' if platform.machine() == 'arm64' else 'x86_64'}.dmg"
+    return f"MorphTo-{version}-{platform.machine() or 'x86_64'}.AppImage"
 
 
 def parse_version(text: str) -> tuple[int, ...]:
@@ -51,7 +61,7 @@ def is_newer(candidate: str, current: str = __version__) -> bool:
 def parse_release(data: dict) -> Release:
     version = str(data.get("tag_name", "")).lstrip("v")
     assets = {a.get("name"): a.get("browser_download_url") for a in data.get("assets", [])}
-    setup_name = f"MorphTo-{version}-setup.exe"
+    setup_name = package_name(version)
     return Release(
         version=version,
         page_url=data.get("html_url") or RELEASES_PAGE,
@@ -88,8 +98,19 @@ def installed_app_dir() -> Path | None:
     return folder if (folder / "unins000.exe").is_file() else None
 
 
+def appimage_path() -> Path | None:
+    """The running AppImage file, if we are one and may replace it."""
+    path = os.environ.get("APPIMAGE")
+    if not path or not getattr(sys, "frozen", False):
+        return None
+    file = Path(path)
+    return file if file.is_file() and os.access(file.parent, os.W_OK) else None
+
+
 def can_self_update() -> bool:
-    return installed_app_dir() is not None
+    if sys.platform == "win32":
+        return installed_app_dir() is not None
+    return sys.platform.startswith("linux") and appimage_path() is not None
 
 
 def download_installer(release: Release, progress: Callable[[float], None], cancel: threading.Event) -> Path:
@@ -109,9 +130,12 @@ def download_installer(release: Release, progress: Callable[[float], None], canc
         raise UpdateError("the installer is not listed in SHA256SUMS.txt")
     folder = data_dir() / "updates"
     folder.mkdir(parents=True, exist_ok=True)
-    for old in folder.glob("*.exe"):  # earlier updates
-        old.unlink(missing_ok=True)
-    target = folder / release.setup_name
+    for old in folder.iterdir():  # earlier updates
+        if old.is_file():
+            old.unlink(missing_ok=True)
+    appimage = appimage_path()
+    # An AppImage is downloaded next to itself, so the final rename stays on one file system.
+    target = (appimage.parent / f".{release.setup_name}.part") if appimage else folder / release.setup_name
     try:
         digest = _download(release.setup_url, target, progress, cancel)
     except EngineInstallError as exc:
@@ -124,11 +148,18 @@ def download_installer(release: Release, progress: Callable[[float], None], canc
 
 
 def run_installer(installer: Path) -> None:
-    """Start the installer for an in-place upgrade; the caller quits right after.
+    """Install the update; the caller quits right after.
 
-    /SILENT shows only a progress window and keeps the user's choices from the first install; /update=1
-    makes the installer start MorphTo again when it is done.
+    Windows: the installer runs with /SILENT (only a progress window, the user's choices from the first
+    install are kept) and /update=1 (it starts MorphTo again when done).
+    Linux: the new AppImage replaces the running one (which stays mounted until we exit) and is started.
     """
+    appimage = appimage_path()
+    if appimage is not None:
+        installer.chmod(0o755)
+        os.replace(installer, appimage)
+        subprocess.Popen([str(appimage), "--background"], start_new_session=True, close_fds=True)
+        return
     folder = installed_app_dir()
     args = [str(installer), "/SILENT", "/SUPPRESSMSGBOXES", "/NORESTART", "/update=1"]
     if folder is not None:

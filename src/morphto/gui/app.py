@@ -79,6 +79,9 @@ class Controller(QObject):
         if self.settings.context_menu:
             self._apply_context_menu(True)  # refresh the command path in case the app moved
 
+        if hasattr(system, "integrate_desktop"):
+            system.integrate_desktop(_icon_png(256))  # Linux AppImage: application menu entry
+
         self._update_timer = QTimer(self)
         self._update_timer.setSingleShot(True)
         self._update_timer.timeout.connect(self._scheduled_update_check)
@@ -324,6 +327,17 @@ class Controller(QObject):
         self.tray.hide()
         self._quit_done.set()
         self.app.quit()
+
+
+def _icon_png(size: int) -> bytes:
+    from PySide6.QtCore import QBuffer, QIODevice
+
+    from morphto.gui.icon import render
+
+    buf = QBuffer()
+    buf.open(QIODevice.OpenModeFlag.WriteOnly)
+    render(size).save(buf, "PNG")
+    return bytes(buf.data())
 
 
 def run(files: list[str], background: bool = False) -> int:

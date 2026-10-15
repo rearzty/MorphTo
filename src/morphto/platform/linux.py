@@ -310,3 +310,31 @@ def open_file(path: Path) -> None:
 
 def force_foreground(hwnd: int) -> None:
     """Qt's activateWindow() is all a Linux window manager accepts; nothing more to do here."""
+
+
+# ---- desktop integration ----
+
+
+def integrate_desktop(icon_png: bytes | None = None) -> None:
+    """Started as an AppImage: add MorphTo to the application menu (and its icon), so it can be found and
+    pinned like any installed app. Refreshed on every start, in case the AppImage was moved."""
+    appimage = os.environ.get("APPIMAGE")
+    if not appimage:
+        return
+    data = _data_home()
+    entry = data / "applications" / "morphto.desktop"
+    try:
+        entry.parent.mkdir(parents=True, exist_ok=True)
+        entry.write_text(
+            "[Desktop Entry]\nType=Application\nName=MorphTo\nComment=Fast offline file converter\n"
+            f"Exec={_desktop_exec([appimage])} %F\nIcon=morphto\nTerminal=false\n"
+            "Categories=Utility;Graphics;AudioVideo;\nStartupWMClass=MorphTo\n",
+            encoding="utf-8",
+        )
+        if icon_png:
+            icon = data / "icons" / "hicolor" / "256x256" / "apps" / "morphto.png"
+            icon.parent.mkdir(parents=True, exist_ok=True)
+            if not icon.is_file() or icon.read_bytes() != icon_png:
+                icon.write_bytes(icon_png)
+    except OSError:
+        pass
