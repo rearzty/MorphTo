@@ -414,14 +414,16 @@ def main() -> None:
             elif target.exists():
                 target.unlink()
         finish_macos_bundle(dist)
-        # Editing the bundle broke PyInstaller's ad-hoc signature; Apple Silicon refuses to run unsigned code.
+        resources = dist / "Contents" / "Resources"
+        shutil.copy(ROOT / "LICENSE", resources / "LICENSE.txt")
+        make_notices(resources / "THIRD-PARTY-NOTICES.txt")
+        # Sign last: any file added or changed afterwards breaks the seal, and macOS then calls the app
+        # "damaged". Ad hoc, as we have no Apple Developer ID; Apple Silicon refuses unsigned code entirely.
         subprocess.run(["codesign", "--force", "--deep", "--sign", "-", str(dist)], check=True)
+        subprocess.run(["codesign", "--verify", "--deep", "--strict", str(dist)], check=True)
         target = DIST.with_name(f"{APP_NAME}.app")
         shutil.rmtree(target, ignore_errors=True)
         shutil.move(str(dist), target)
-        resources = target / "Contents" / "Resources"
-        shutil.copy(ROOT / "LICENSE", resources / "LICENSE.txt")
-        make_notices(resources / "THIRD-PARTY-NOTICES.txt")
         size_report(target)
         print(make_dmg(target))
         return

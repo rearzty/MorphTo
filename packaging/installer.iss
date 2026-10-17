@@ -1,5 +1,5 @@
 ; MorphTo installer (Inno Setup 6). Built by .github/workflows/release.yml:
-;   ISCC /DAppVersion=0.4.0 packaging\installer.iss   ->  dist\MorphTo-0.4.0-setup.exe
+;   ISCC /DAppVersion=0.4.1 packaging\installer.iss   ->  dist\MorphTo-0.4.1-setup.exe
 ; Per-user install (no admin rights): %LOCALAPPDATA%\Programs\MorphTo.
 
 #ifndef AppVersion

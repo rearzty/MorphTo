@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.4.1] - 2026-10-17
+
+### Fixed
+- macOS: the app was reported as "damaged" because its signature was broken by files added after signing.
+  The bundle is now signed last, and every build verifies the signature.
+
 ## [0.4.0] - 2026-10-16
 
 MorphTo for macOS and Linux.
