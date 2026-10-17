@@ -133,6 +133,7 @@ jobs:
       - name: Self-test the packaged app
         run: |
           python -c "from PIL import Image; im = Image.new('RGB', (64, 48), 'teal'); im.save('sample.png'); im.save('sample.pdf')"
+          codesign --verify --deep --strict --verbose=2 dist/MorphTo.app
           dist/MorphTo.app/Contents/MacOS/MorphTo --self-test sample.png jpg
           dist/MorphTo.app/Contents/MacOS/MorphTo --self-test sample.pdf png
           dist/MorphTo.app/Contents/MacOS/MorphTo --version

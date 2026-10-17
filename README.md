@@ -117,9 +117,15 @@ Download `MorphTo-…-macos-arm64.dmg` (Apple Silicon) or `…-macos-x86_64.dmg`
 [releases page](https://github.com/rearzty/MorphTo/releases/latest), open it and drag MorphTo to Applications.
 MorphTo lives in the menu bar; the hotkey is <kbd>Control</kbd>+<kbd>Option</kbd>+<kbd>C</kbd>.
 
-> **“MorphTo cannot be opened because the developer cannot be verified”?** MorphTo is not notarized by Apple
-> yet. Right-click MorphTo in Applications → **Open** → **Open**. On macOS 15 and later: try to open it once,
-> then System Settings → Privacy & Security → **Open Anyway**.
+> **“MorphTo is damaged and can’t be opened”?** It is not damaged: MorphTo is not notarized by Apple yet, and
+> macOS says this about apps from the internet that are not. After dragging MorphTo to Applications, run once
+> in Terminal:
+>
+> ```bash
+> xattr -dr com.apple.quarantine /Applications/MorphTo.app
+> ```
+>
+> and open it as usual. (On older macOS versions right-click → **Open** → **Open** is enough.)
 
 ### Linux
 
