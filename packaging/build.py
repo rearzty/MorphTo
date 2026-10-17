@@ -21,6 +21,7 @@ import plistlib
 import shutil
 import subprocess
 import sys
+import time
 from fnmatch import fnmatch
 from io import BytesIO
 from pathlib import Path
@@ -215,21 +216,25 @@ def make_dmg(app: Path) -> Path:
     subprocess.run(["ditto", str(app), str(stage / app.name)], check=True)
     (stage / "Applications").symlink_to("/Applications")
     out.unlink(missing_ok=True)
-    subprocess.run(
-        [
-            "hdiutil",
-            "create",
-            "-volname",
-            APP_NAME,
-            "-srcfolder",
-            str(stage),
-            "-ov",
-            "-format",
-            "UDZO",
-            str(out),
-        ],
-        check=True,
-    )
+    cmd = [
+        "hdiutil",
+        "create",
+        "-volname",
+        APP_NAME,
+        "-srcfolder",
+        str(stage),
+        "-ov",
+        "-format",
+        "UDZO",
+        str(out),
+    ]
+    # hdiutil sometimes fails with "Resource busy" while the system scans the fresh files: try again.
+    for attempt in range(5):
+        if subprocess.run(cmd, check=False).returncode == 0:
+            break
+        if attempt == 4:
+            raise SystemExit("hdiutil could not create the disk image")
+        time.sleep(5 * (attempt + 1))
     verify_dmg(out)
     return out
 

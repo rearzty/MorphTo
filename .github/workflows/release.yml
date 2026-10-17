@@ -97,6 +97,7 @@ jobs:
 
   macos:
     strategy:
+      fail-fast: false  # one flaky runner must not cancel the other build
       matrix:
         runner: [macos-latest, macos-15-intel]  # Apple Silicon, Intel
     runs-on: ${{ matrix.runner }}
