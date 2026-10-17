@@ -230,7 +230,23 @@ def make_dmg(app: Path) -> Path:
         ],
         check=True,
     )
+    verify_dmg(out)
     return out
+
+
+def verify_dmg(dmg: Path) -> None:
+    """Check the copy users get: mount the image and verify the app's signature inside it. A broken seal
+    makes macOS call the app "damaged", so a release must never ship one."""
+    mount = BUILD / "dmg-check"
+    mount.mkdir(parents=True, exist_ok=True)
+    subprocess.run(
+        ["hdiutil", "attach", "-nobrowse", "-readonly", "-mountpoint", str(mount), str(dmg)], check=True
+    )
+    try:
+        app = mount / f"{APP_NAME}.app"
+        subprocess.run(["codesign", "--verify", "--deep", "--strict", "--verbose=2", str(app)], check=True)
+    finally:
+        subprocess.run(["hdiutil", "detach", str(mount)], check=False)
 
 
 def make_appimage(dist: Path, icon: Path) -> Path | None:
