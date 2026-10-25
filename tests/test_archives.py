@@ -5,7 +5,6 @@ import zipfile
 
 import pytest
 
-from morphto.converters.archives import _TAR
 from morphto.converters.extra_images import svg_size
 from morphto.core.detect import detect, sniff
 from morphto.core.engine import convert, plan
@@ -47,7 +46,7 @@ def test_unpack_zip_into_a_folder(tmp_path, zip_file):
     assert (out / "sub" / "файл.txt").read_text(encoding="utf-8") == "мир"
 
 
-@pytest.mark.parametrize("fmt", ["tar", "tgz"] + (["7z"] if _TAR.is_file() else []))
+@pytest.mark.parametrize("fmt", ["tar", "tgz", "7z"])
 def test_repack_round_trip(tmp_path, zip_file, fmt):
     packed = convert(zip_file, fmt, out_dir=tmp_path / "p")
     assert detect(packed).id == fmt
@@ -123,3 +122,19 @@ def test_m4r_ringtone_is_offered():
     from morphto.core.targets import available_targets
 
     assert "m4r" in {t.id for t in available_targets([get_format("mp3")])}
+
+
+def test_7z_with_empty_files_and_folders(tmp_path, tree):
+    (tree / "empty.txt").write_bytes(b"")
+    (tree / "empty-dir").mkdir()
+    (tree / "big.bin").write_bytes(bytes(range(256)) * 20000)
+    zip_path = tmp_path / "all.zip"
+    with zipfile.ZipFile(zip_path, "w") as zf:
+        for p in sorted(tree.rglob("*")):
+            zf.write(p, p.relative_to(tree).as_posix())
+    packed = convert(zip_path, "7z", out_dir=tmp_path / "p")
+    assert packed.read_bytes()[:6] == b"7z\xbc\xaf\x27\x1c"
+    out = convert(packed, "folder", out_dir=tmp_path / "u")
+    assert _listing(out) == ["a.txt", "big.bin", "empty.txt", "sub/файл.txt"]
+    assert (out / "empty-dir").is_dir()
+    assert (out / "big.bin").read_bytes() == bytes(range(256)) * 20000

@@ -105,9 +105,9 @@ def pack(folder: Path, dst: Path, fmt: str, ctx: Context) -> None:
             for path in entries:
                 tf.add(path, path.name)
     else:  # 7z
-        # Names as arguments (relative to -C): no list file, whose encoding tar.exe may read differently.
-        names = [p.name for p in entries]
-        _run_tar(["-c", "--format", "7zip", "-f", str(dst), "-C", str(folder), *names], ctx, fmt)
+        from morphto.converters.sevenzip import write_7z
+
+        write_7z(folder, dst, ctx.check_cancelled)
 
 
 def _run_tar(args: list[str], ctx: Context, fmt: str) -> None:

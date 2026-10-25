@@ -8,6 +8,7 @@
 
 ### Changed
 - Clicking “In the clipboard: …” in the popup pastes it.
+- 7Z archives are written by MorphTo itself (LZMA2); Windows' tar.exe crashes on that on some builds.
 
 ## [0.4.1] - 2026-10-17
 
