@@ -8,6 +8,7 @@ names with ".." or absolute paths are refused by both.
 from __future__ import annotations
 
 import gzip
+import lzma
 import os
 import shutil
 import subprocess
@@ -73,6 +74,8 @@ def extract(src: Path, fmt: str, dest: Path, ctx: Context) -> None:
                 with tarfile.open(src) as tf:
                     tf.extractall(dest, filter="data")
         else:
+            if fmt == "7z" and _read_7z_ourselves(src, dest, ctx):
+                return
             try:
                 _run_tar(["-xf", str(src), "-C", str(dest)], ctx, fmt)
             except ConversionError as exc:
@@ -83,6 +86,23 @@ def extract(src: Path, fmt: str, dest: Path, ctx: Context) -> None:
         raise ConversionError(f"Cannot unpack the archive: {exc}") from exc
     if not any(dest.iterdir()):
         raise ConversionError("The archive is empty")
+
+
+def _read_7z_ourselves(src: Path, dest: Path, ctx: Context) -> bool:
+    """True when our reader unpacked it; False to let tar try (PPMd, BCJ2...)."""
+    from morphto.converters.sevenzip_read import PasswordProtected, Unsupported, read_7z
+
+    try:
+        read_7z(src, dest, ctx.check_cancelled)
+    except PasswordProtected:
+        raise ConversionError("The archive is password-protected") from None
+    except (Unsupported, lzma.LZMAError):
+        for item in dest.iterdir():  # start clean for tar
+            shutil.rmtree(item) if item.is_dir() else item.unlink()
+        return False
+    if not any(dest.iterdir()):
+        raise ConversionError("The archive is empty")
+    return True
 
 
 def _is_tar(path: Path) -> bool:

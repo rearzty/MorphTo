@@ -8,7 +8,8 @@
 
 ### Changed
 - Clicking “In the clipboard: …” in the popup pastes it.
-- 7Z archives are written by MorphTo itself (LZMA2); Windows' tar.exe crashes on that on some builds.
+- 7Z archives are written and read by MorphTo itself (LZMA/LZMA2, BCJ, Delta), so file names in any
+  language survive on any Windows; rarer methods (PPMd, BCJ2) still go through the system's tar.
 
 ## [0.4.1] - 2026-10-17
 
