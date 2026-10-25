@@ -454,7 +454,7 @@ class Popup(QWidget):
 
         # input area
         self.drop = DropArea()
-        self.drop.clicked.connect(self.browse)
+        self.drop.clicked.connect(self._on_drop_clicked)
         self.drop_stack = QStackedWidget(self.drop)
         drop_lay = QVBoxLayout(self.drop)
         drop_lay.setContentsMargins(12, 10, 12, 10)
@@ -924,8 +924,21 @@ class Popup(QWidget):
                 return self._handle_key(event)
         return super().eventFilter(obj, event)
 
+    def _on_drop_clicked(self) -> None:
+        """A click on "In the clipboard: …" pastes it; anywhere else in the drop area opens the file picker."""
+        hint = self.clip_hint
+        if hint.isVisible() and hint.rect().contains(hint.mapFromGlobal(QCursor.pos())) and self.paste():
+            return
+        self.browse()
+
     def _handle_key(self, event) -> bool:
         key = event.key()
+        # Ctrl+V wherever the focus is (a button, the drop area...), not only in the search box.
+        if event.matches(QKeySequence.StandardKey.Paste) or _is_ctrl_key(event, VK_V):
+            if not self.paste():
+                self.search.setFocus()
+                self.search.paste()
+            return True
         if key == Qt.Key.Key_Escape:
             self.hide()
             return True

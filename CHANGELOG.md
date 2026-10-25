@@ -1,5 +1,14 @@
 # Changelog
 
+## [0.4.2] - 2026-10-25
+
+### Fixed
+- Ctrl+V in the popup did nothing when the focus was not in the format box (e.g. on a button or the drop
+  area). It now pastes wherever the focus is.
+
+### Changed
+- Clicking “In the clipboard: …” in the popup pastes it.
+
 ## [0.4.1] - 2026-10-17
 
 ### Fixed
