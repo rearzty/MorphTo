@@ -105,12 +105,9 @@ def pack(folder: Path, dst: Path, fmt: str, ctx: Context) -> None:
             for path in entries:
                 tf.add(path, path.name)
     else:  # 7z
-        listing = folder.parent / f"{folder.name}-files.txt"
-        listing.write_text("\n".join(p.name for p in entries) + "\n", encoding="utf-8")
-        try:
-            _run_tar(["-cf", str(dst), "--format", "7zip", "-C", str(folder), "-T", str(listing)], ctx, fmt)
-        finally:
-            listing.unlink(missing_ok=True)
+        # Names as arguments (relative to -C): no list file, whose encoding tar.exe may read differently.
+        names = [p.name for p in entries]
+        _run_tar(["-c", "--format", "7zip", "-f", str(dst), "-C", str(folder), *names], ctx, fmt)
 
 
 def _run_tar(args: list[str], ctx: Context, fmt: str) -> None:
@@ -124,7 +121,8 @@ def _run_tar(args: list[str], ctx: Context, fmt: str) -> None:
 
     result = _run([str(_TAR), *args], ctx)
     if result.returncode != 0:
-        detail = (result.stderr or b"").decode("utf-8", "replace").strip()
+        detail = (result.stderr or result.stdout or b"").decode("utf-8", "replace").strip()
+        detail = detail or f"tar exit code {result.returncode}"
         if "passphrase" in detail.lower() or "encrypt" in detail.lower():
             raise ConversionError("The archive is password-protected")
         raise ConversionError(f"Cannot process the {fmt.upper()} archive: {detail[-300:]}")
