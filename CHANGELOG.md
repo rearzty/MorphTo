@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.4.3] - 2026-10-26
+
+### Fixed
+- The translucent popup was hard to read over a light window (dark theme) or a dark one (light theme). The glass
+  now has a denser tint and stronger secondary colours: all text keeps at least 4.5:1 contrast whatever is
+  behind it.
+
 ## [0.4.2] - 2026-10-25
 
 ### Fixed

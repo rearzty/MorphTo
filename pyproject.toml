@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "morphto"
-version = "0.4.2"
+version = "0.4.3"
 description = "Fast, offline file converter for Windows: press a hotkey, paste, pick a format, done."
 readme = "README.md"
 license = "GPL-3.0-or-later"

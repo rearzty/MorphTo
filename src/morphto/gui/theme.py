@@ -24,6 +24,8 @@ class Palette:
     selection: str
     success: str
     danger: str
+    hint: str = ""  # accent-coloured text; "" = the accent itself
+    tint: float = 0.0  # glass only: how opaque the card is over the system backdrop
 
 
 DARK = Palette(
@@ -88,14 +90,17 @@ def apply_accent(app) -> None:
 
 def glass(p: Palette) -> Palette:
     """Translucent surfaces for use on top of the Windows acrylic backdrop."""
+    # The acrylic alone lets a white web page shine through a dark popup (and the other way round), so the
+    # card gets an 88% tint of the theme colour and slightly stronger secondary colours: every text stays at
+    # 4.5:1 contrast or better whatever is behind the window, while the blur still shows a little.
     if p.dark:
         return replace(
             p, surface="rgba(255,255,255,0.06)", surface_hover="rgba(255,255,255,0.10)",
-            border="rgba(255,255,255,0.10)",
+            border="rgba(255,255,255,0.12)", muted="#A7AEBA", hint="#A99EFF", tint=0.88,
         )  # fmt: skip
     return replace(
         p, surface="rgba(255,255,255,0.55)", surface_hover="rgba(255,255,255,0.80)",
-        border="rgba(0,0,0,0.08)",
+        border="rgba(0,0,0,0.10)", muted="#535A66", hint="#5640E8", tint=0.88,
     )  # fmt: skip
 
 
@@ -103,7 +108,8 @@ def stylesheet(p: Palette, glass: bool = False, square: bool = False) -> str:
     """``glass``: the window has a system backdrop, so the card itself stays transparent.
     ``square``: the system draws border and corners, so the card should fill the window flat."""
     if glass:
-        card = "background: transparent; border: none;"
+        r, g, b = (int(p.bg.lstrip("#")[i : i + 2], 16) for i in (0, 2, 4))
+        card = f"background: rgba({r},{g},{b},{p.tint or 0.88}); border: none;"
     elif square:
         card = f"background: {p.bg}; border: none;"
     else:
@@ -115,7 +121,7 @@ def stylesheet(p: Palette, glass: bool = False, square: bool = False) -> str:
     #result:hover {{ border-color: {p.accent}; }}
     #title {{ color: {p.muted}; font-weight: 600; }}
     #muted {{ color: {p.muted}; }}
-    #hint {{ color: {p.accent}; }}
+    #hint {{ color: {p.hint or p.accent}; }}
     #error {{ color: {p.danger}; }}
     #success {{ color: {p.success}; font-weight: 600; }}
     #drop {{ background: {p.surface}; border: 1.5px dashed {p.border}; border-radius: 10px; }}
